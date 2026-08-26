@@ -1,0 +1,6 @@
+.build/
+Sonar.app/
+Sonar.dmg
+Sonar.iconset/
+.DS_Store
+*.xcodeproj
