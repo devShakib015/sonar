@@ -1,24 +1,5 @@
 import Foundation
 
-// Thread-safe byte counter used as a URLSession delegate during the download test.
-final class ByteMeter: NSObject, URLSessionDataDelegate, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _bytes = 0
-    var capBytes = Int.max
-    var task: URLSessionDataTask?
-    var onComplete: ((Error?) -> Void)?
-
-    func current() -> Int { lock.lock(); defer { lock.unlock() }; return _bytes }
-
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        lock.lock(); _bytes += data.count; let b = _bytes; lock.unlock()
-        if b >= capBytes { dataTask.cancel() }
-    }
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        onComplete?(error)
-    }
-}
-
 // Internet speed test against Cloudflare's public speed endpoints.
 @MainActor
 final class SpeedTest: ObservableObject {
@@ -73,26 +54,26 @@ final class SpeedTest: ObservableObject {
 
     private func runDownload() async {
         phase = .download
-        guard let url = URL(string: "https://speed.cloudflare.com/__down?bytes=100000000") else { return }
-        let meter = ByteMeter(); meter.capBytes = 100_000_000
-        let session = URLSession(configuration: .ephemeral, delegate: meter, delegateQueue: nil)
+        let session = URLSession(configuration: .ephemeral)
+        let chunkBytes = 10_000_000     // 10 MB per request
+        let maxChunks = 12              // up to ~120 MB
         let start = Date()
-
-        let poller = Task { @MainActor in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 150_000_000)
+        var total = 0
+        for _ in 0..<maxChunks {
+            if Date().timeIntervalSince(start) >= 12 { break }   // ~12s cap
+            guard let url = URL(string: "https://speed.cloudflare.com/__down?bytes=\(chunkBytes)") else { break }
+            do {
+                let (data, _) = try await session.data(from: url)
+                total += data.count
                 let e = Date().timeIntervalSince(start)
-                if e > 0 { liveMbps = Double(meter.current()) * 8 / e / 1_000_000 }
-                if e >= 12 { meter.task?.cancel() }
+                if e > 0 { liveMbps = Double(total) * 8 / e / 1_000_000 }
+            } catch {
+                self.error = "Download failed: \(error.localizedDescription)"
+                break
             }
         }
-        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
-            meter.onComplete = { _ in c.resume() }
-            let t = session.dataTask(with: url); meter.task = t; t.resume()
-        }
-        poller.cancel()
         let e = Date().timeIntervalSince(start)
-        downMbps = e > 0 ? Double(meter.current()) * 8 / e / 1_000_000 : 0
+        downMbps = (e > 0 && total > 0) ? Double(total) * 8 / e / 1_000_000 : 0
         liveMbps = downMbps
         session.invalidateAndCancel()
     }
