@@ -1,0 +1,33 @@
+{
+  "title": "Sonar \u2014 a macOS network toolkit",
+  "description": "A complete macOS network toolkit: device discovery, diagnostics, Wi-Fi analysis, control, monitoring and per-device DNS logs. Written in native SwiftUI.",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Hossain, K M Shahriar",
+      "orcid": "0009-0004-5489-9717"
+    }
+  ],
+  "keywords": [
+    "device-discovery",
+    "dns",
+    "macos",
+    "macos-app",
+    "network",
+    "network-scanner",
+    "network-tools",
+    "port-scanner",
+    "security",
+    "swift",
+    "swiftui",
+    "traceroute"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/devShakib015/sonar",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
