@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Sonar — a macOS network toolkit"
+abstract: >-
+  A complete macOS network toolkit: device discovery, diagnostics, Wi-Fi analysis, control, monitoring and per-device DNS logs. Written in native SwiftUI.
+type: software
+authors:
+  - given-names: "K M Shahriar"
+    family-names: "Hossain"
+    orcid: "https://orcid.org/0009-0004-5489-9717"
+repository-code: "https://github.com/devShakib015/sonar"
+url: "https://devshakib.jumyn.com/apps"
+license: MIT
+keywords:
+  - "device-discovery"
+  - "dns"
+  - "macos"
+  - "macos-app"
+  - "network"
+  - "network-scanner"
+  - "network-tools"
+  - "port-scanner"
+  - "security"
+  - "swift"
+  - "swiftui"
+  - "traceroute"
