@@ -3,27 +3,28 @@ import AppKit
 
 struct MenuBarView: View {
     @EnvironmentObject var scanner: Scanner
+    @EnvironmentObject var meter: ThroughputMeter
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Image(systemName: "dot.radiowaves.left.and.right").foregroundStyle(.blue)
+                Image(systemName: "dot.radiowaves.left.and.right").foregroundStyle(Term.cyan)
                 Text("Sonar").fontWeight(.semibold)
                 Spacer()
                 Text("\(scanner.onlineCount) online").foregroundStyle(.secondary).font(.callout)
             }
 
             HStack(spacing: 14) {
-                Label(formatBytesPerSec(scanner.downBps), systemImage: "arrow.down").foregroundStyle(.blue)
-                Label(formatBytesPerSec(scanner.upBps), systemImage: "arrow.up").foregroundStyle(.green)
+                Label(formatBytesPerSec(meter.downBps), systemImage: "arrow.down").foregroundStyle(Term.cyan)
+                Label(formatBytesPerSec(meter.upBps), systemImage: "arrow.up").foregroundStyle(.green)
             }
             .font(.caption.monospacedDigit())
 
             if scanner.newCount > 0 {
                 Label("\(scanner.newCount) new device\(scanner.newCount == 1 ? "" : "s") detected",
                       systemImage: "sparkles")
-                    .foregroundStyle(.pink).font(.callout)
+                    .foregroundStyle(Term.amber).font(.callout)
             }
 
             Divider()

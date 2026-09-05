@@ -3,13 +3,13 @@ import ServiceManagement
 import AppKit
 
 enum SettingsStore {
-    static var launchAtLogin: Bool {
-        get { UserDefaults.standard.bool(forKey: "sonar.launchAtLogin") }
-        set { UserDefaults.standard.set(newValue, forKey: "sonar.launchAtLogin") }
-    }
     static var menuBarOnly: Bool {
         get { UserDefaults.standard.bool(forKey: "sonar.menuBarOnly") }
         set { UserDefaults.standard.set(newValue, forKey: "sonar.menuBarOnly") }
+    }
+    static var notifyJoinLeave: Bool {
+        get { UserDefaults.standard.bool(forKey: "sonar.notifyJoinLeave") }
+        set { UserDefaults.standard.set(newValue, forKey: "sonar.notifyJoinLeave") }
     }
     static var onboarded: Bool {
         get { UserDefaults.standard.bool(forKey: "sonar.onboarded") }

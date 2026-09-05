@@ -37,7 +37,7 @@ struct ExposureView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Exposure Audit").font(.largeTitle.weight(.bold))
+                Text("Exposure Audit").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                 upnpCard
                 scannerCard
             }
@@ -54,7 +54,7 @@ struct ExposureView: View {
                     SectionTitle(text: "Internet exposure (UPnP)", icon: "lock.shield")
                     Spacer()
                     Button(m.auditing ? "Auditing…" : "Run audit") { Task { await m.runAudit() } }
-                        .buttonStyle(.borderedProminent).disabled(m.auditing)
+                        .buttonStyle(TermButton()).disabled(m.auditing)
                 }
                 Text("Asks your router which ports it forwards to the internet — what the outside world can reach.")
                     .font(.callout).foregroundStyle(.secondary)
@@ -72,11 +72,11 @@ struct ExposureView: View {
                             .foregroundStyle(r.upnpAvailable ? .green : .secondary).font(.callout)
                     } else {
                         Label("\(r.mappings.count) port(s) forwarded to the internet — review these:", systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange).font(.callout.weight(.medium))
+                            .foregroundStyle(Term.amber).font(.callout.weight(.medium))
                         ForEach(r.mappings) { mp in
                             HStack(spacing: 10) {
-                                Circle().fill(mp.enabled ? Color.orange : Color.secondary).frame(width: 7, height: 7)
-                                Text("\(mp.proto) \(mp.externalPort)").font(.system(.callout, design: .monospaced)).foregroundStyle(.orange).frame(width: 90, alignment: .leading)
+                                Circle().fill(mp.enabled ? Term.amber : Color.secondary).frame(width: 7, height: 7)
+                                Text("\(mp.proto) \(mp.externalPort)").font(.system(.callout, design: .monospaced)).foregroundStyle(Term.amber).frame(width: 90, alignment: .leading)
                                 Image(systemName: "arrow.right").font(.caption2).foregroundStyle(.secondary)
                                 Text("\(mp.internalClient):\(mp.internalPort)").font(.system(.callout, design: .monospaced))
                                 Spacer()
@@ -121,7 +121,7 @@ struct ExposureView: View {
                 Button(m.scanning ? "Scanning \(m.host)…" : "Scan \(m.host.isEmpty ? "" : m.host)") {
                     Task { await m.runScan() }
                 }
-                .buttonStyle(.bordered).disabled(m.scanning || m.host.isEmpty)
+                .buttonStyle(TermButton()).disabled(m.scanning || m.host.isEmpty)
 
                 if m.scanning {
                     ProgressView().controlSize(.small)
@@ -132,7 +132,7 @@ struct ExposureView: View {
                         Text("\(m.scanResults.count) open on \(m.scannedHost):").font(.caption).foregroundStyle(.secondary)
                         ForEach(m.scanResults) { p in
                             HStack(spacing: 10) {
-                                Text("\(p.port)").font(.system(.callout, design: .monospaced)).foregroundStyle(.blue).frame(width: 60, alignment: .leading)
+                                Text("\(p.port)").font(.system(.callout, design: .monospaced)).foregroundStyle(Term.cyan).frame(width: 60, alignment: .leading)
                                 Text(p.service).font(.callout)
                                 Spacer()
                             }

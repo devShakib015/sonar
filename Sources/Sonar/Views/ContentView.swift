@@ -7,6 +7,7 @@ enum Panel: Hashable {
 
 struct ContentView: View {
     @EnvironmentObject var scanner: Scanner
+    @EnvironmentObject var meter: ThroughputMeter
     @State private var selection: Panel? = .overview
     @State private var showHistory = false
     @State private var search = ""
@@ -27,18 +28,30 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 0) {
+                        Text("SONAR").font(Term.mono(21, .bold)).foregroundStyle(Term.accent).glow(Term.cyan, 7)
+                        Text("//").font(Term.mono(21, .bold)).foregroundStyle(Term.dim)
+                        BlinkingCursor(size: 21)
+                        Spacer()
+                    }
+                    Text(scanner.localIP.isEmpty ? "\u{25CF} no link" : "\u{25CF} \(scanner.onlineCount) hosts up \u{00B7} \(scanner.localIP)")
+                        .font(Term.mono(9)).foregroundStyle(Term.dim).lineLimit(1)
+                }
+                .padding(.horizontal, 12).padding(.top, 12).padding(.bottom, 6)
                 HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).font(.caption)
-                    TextField("Search devices", text: $search).textFieldStyle(.plain)
+                    Text(">").font(Term.mono(12, .bold)).foregroundStyle(Term.green)
+                    TextField("search", text: $search).textFieldStyle(.plain)
+                        .font(Term.mono(12)).foregroundStyle(Term.green)
                     if !search.isEmpty {
                         Button { search = "" } label: { Image(systemName: "xmark.circle.fill") }
-                            .buttonStyle(.plain).foregroundStyle(.secondary)
+                            .buttonStyle(.plain).foregroundStyle(Term.dim)
                     }
                 }
-                .padding(.horizontal, 10).padding(.vertical, 6)
-                Divider()
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                Divider().overlay(Term.border)
                 List(selection: $selection) {
-                    Section("Tools") {
+                    Section(header: Text("// TOOLS").font(Term.mono(9, .bold)).foregroundStyle(Term.dim)) {
                         Label("Overview", systemImage: "square.grid.2x2").tag(Panel.overview)
                         Label("Radar", systemImage: "scope").tag(Panel.radar)
                         Label("Diagnostics", systemImage: "stethoscope").tag(Panel.diagnostics)
@@ -53,20 +66,22 @@ struct ContentView: View {
                         Label("DNS Logs", systemImage: "network.badge.shield.half.filled").tag(Panel.dnsLogs)
                     }
                     if !newDevices.isEmpty {
-                        Section("New / Unrecognized") {
+                        Section(header: Text("// NEW / UNRECOGNIZED").font(Term.mono(9, .bold)).foregroundStyle(Term.amber)) {
                             ForEach(newDevices) { DeviceRow(device: $0).tag(Panel.device($0.id)) }
                         }
                     }
-                    Section("Online — \(onlineDevices.count + newDevices.count)") {
+                    Section(header: Text("// ONLINE \u{2014} \(onlineDevices.count + newDevices.count)").font(Term.mono(9, .bold)).foregroundStyle(Term.dim)) {
                         ForEach(onlineDevices) { DeviceRow(device: $0).tag(Panel.device($0.id)) }
                     }
                     if !offlineDevices.isEmpty {
-                        Section("Recently offline") {
+                        Section(header: Text("// RECENTLY OFFLINE").font(Term.mono(9, .bold)).foregroundStyle(Term.faint)) {
                             ForEach(offlineDevices) { DeviceRow(device: $0).tag(Panel.device($0.id)) }
                         }
                     }
                 }
                 .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
+                .font(Term.mono(12))
                 .animation(.default, value: scanner.devices.count)
                 Divider()
                 sidebarFooter
@@ -76,12 +91,17 @@ struct ContentView: View {
             detailView
         }
         .toolbar { toolbarContent }
-        .tint(.teal)
+        .tint(Term.green)
         .sheet(isPresented: $showOnboarding) {
             OnboardingView(onStart: { Task { await scanner.scanNow() } })
         }
         .sheet(isPresented: $showHistory) { HistoryView() }
+        .onAppear { scanner.attach(meter); meter.start() }
         .task { if scanner.lastScan == nil && !showOnboarding { await scanner.scanNow() } }
+        .background(HUDBackground())
+        .background(WindowStyler())
+        .preferredColorScheme(.dark)
+        .crt()
     }
 
     @ViewBuilder
@@ -108,12 +128,12 @@ struct ContentView: View {
 
     private var sidebarFooter: some View {
         VStack(alignment: .leading, spacing: 5) {
-            if scanner.isScanning { ProgressView(value: scanner.progress).controlSize(.small) }
-            Text(scanner.statusText).font(.caption).foregroundStyle(.secondary)
+            if scanner.isScanning { ProgressView(value: scanner.progress).controlSize(.small).tint(Term.green) }
+            Text(scanner.statusText).font(Term.mono(10)).foregroundStyle(Term.dim)
                 .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             if let last = scanner.lastScan {
-                Text("Updated \(last.formatted(date: .omitted, time: .shortened))")
-                    .font(.caption2).foregroundStyle(.tertiary)
+                Text("updated \(last.formatted(date: .omitted, time: .shortened))")
+                    .font(Term.mono(9)).foregroundStyle(Term.faint)
             }
         }
         .padding(10).frame(maxWidth: .infinity, alignment: .leading)
@@ -123,9 +143,9 @@ struct ContentView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
             HStack(spacing: 12) {
-                HStack(spacing: 3) { Image(systemName: "arrow.down"); Text(formatBytesPerSec(scanner.downBps)) }
-                    .foregroundStyle(.blue)
-                HStack(spacing: 3) { Image(systemName: "arrow.up"); Text(formatBytesPerSec(scanner.upBps)) }
+                HStack(spacing: 3) { Image(systemName: "arrow.down"); Text(formatBytesPerSec(meter.downBps)) }
+                    .foregroundStyle(Term.cyan)
+                HStack(spacing: 3) { Image(systemName: "arrow.up"); Text(formatBytesPerSec(meter.upBps)) }
                     .foregroundStyle(.green)
             }
             .font(.caption.monospacedDigit()).help("Live throughput on this Mac")

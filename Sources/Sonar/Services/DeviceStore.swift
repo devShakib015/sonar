@@ -20,9 +20,8 @@ final class DeviceStore {
         anomaliesURL = dir.appendingPathComponent("anomalies.json")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         load()
+        prune()
     }
-
-    func isKnown(_ mac: String) -> Bool { !mac.isEmpty && records[mac] != nil }
 
     // Record a sighting; returns (firstSeen, wasBrandNew).
     @discardableResult
@@ -80,26 +79,48 @@ final class DeviceStore {
     func addAnomaly(_ a: AnomalyRecord) {
         anomalies.insert(a, at: 0)
         if anomalies.count > 200 { anomalies = Array(anomalies.prefix(200)) }
-        if let d = try? JSONEncoder().encode(anomalies) { try? d.write(to: anomaliesURL) }
+        if let d = try? JSONEncoder().encode(anomalies) { try? d.write(to: anomaliesURL, options: .atomic) }
     }
     func clearAnomalies() {
         anomalies = []
-        if let d = try? JSONEncoder().encode(anomalies) { try? d.write(to: anomaliesURL) }
+        if let d = try? JSONEncoder().encode(anomalies) { try? d.write(to: anomaliesURL, options: .atomic) }
     }
 
     // MARK: persistence
     func saveRecords() {
-        if let data = try? JSONEncoder().encode(records) { try? data.write(to: recordsURL) }
+        if let data = try? JSONEncoder().encode(records) { try? data.write(to: recordsURL, options: .atomic) }
     }
     func saveEvents() {
-        if let data = try? JSONEncoder().encode(events) { try? data.write(to: eventsURL) }
+        if let data = try? JSONEncoder().encode(events) { try? data.write(to: eventsURL, options: .atomic) }
     }
+    // Decodes JSON; if the file exists but is corrupt, preserves it as .corrupt
+    // instead of silently discarding (and later overwriting) it.
+    private func loadJSON<T: Decodable>(_ url: URL, _ type: T.Type) -> T? {
+        guard let d = try? Data(contentsOf: url) else { return nil }
+        if let v = try? JSONDecoder().decode(T.self, from: d) { return v }
+        let backup = url.appendingPathExtension("corrupt")
+        try? FileManager.default.removeItem(at: backup)
+        try? FileManager.default.moveItem(at: url, to: backup)
+        return nil
+    }
+
     private func load() {
-        if let d = try? Data(contentsOf: recordsURL),
-           let r = try? JSONDecoder().decode([String: StoredDevice].self, from: d) { records = r }
-        if let d = try? Data(contentsOf: eventsURL),
-           let e = try? JSONDecoder().decode([ScanEvent].self, from: d) { events = e }
-        if let d = try? Data(contentsOf: anomaliesURL),
-           let a = try? JSONDecoder().decode([AnomalyRecord].self, from: d) { anomalies = a }
+        records = loadJSON(recordsURL, [String: StoredDevice].self) ?? [:]
+        events = loadJSON(eventsURL, [ScanEvent].self) ?? []
+        anomalies = loadJSON(anomaliesURL, [AnomalyRecord].self) ?? []
+    }
+
+    // Bound growth: keep all user-labeled devices; cap unlabeled to the newest 400.
+    private func prune() {
+        let maxUnlabeled = 400
+        let unlabeled = records.values.filter {
+            $0.customName == nil && $0.notes.isEmpty && !$0.trusted
+                && !($0.alertOnJoin ?? false) && !($0.alertOnLeave ?? false)
+        }
+        guard unlabeled.count > maxUnlabeled else { return }
+        for r in unlabeled.sorted(by: { $0.firstSeen < $1.firstSeen }).prefix(unlabeled.count - maxUnlabeled) {
+            records.removeValue(forKey: r.mac)
+        }
+        saveRecords()
     }
 }

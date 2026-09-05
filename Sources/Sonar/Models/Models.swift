@@ -55,12 +55,11 @@ enum DeviceType: String, Codable, CaseIterable {
 
     var tint: Color {
         switch self {
-        case .router:     return .purple
-        case .thisDevice: return .blue
-        case .printer, .nas: return .orange
-        case .camera:     return .red
-        case .iot, .speaker, .tv: return .teal
-        default:          return .secondary
+        case .router:        return Term.amber
+        case .thisDevice:    return Term.cyan
+        case .printer, .nas: return Term.amber
+        case .camera:        return Term.red
+        default:             return Term.green
         }
     }
 }
@@ -134,9 +133,9 @@ enum EventKind: String, Codable {
     }
     var tint: Color {
         switch self {
-        case .newDevice: return .pink
-        case .joined:    return .green
-        case .left:      return .secondary
+        case .newDevice: return Term.amber
+        case .joined:    return Term.green
+        case .left:      return Term.dim
         }
     }
     var verb: String {

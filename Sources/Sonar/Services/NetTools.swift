@@ -53,7 +53,8 @@ enum NetTools {
     static func publicIP() async -> PublicIP? {
         guard let url = URL(string: "https://ipwho.is/") else { return nil }
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            var req = URLRequest(url: url); req.timeoutInterval = 5
+            let (data, _) = try await URLSession.shared.data(for: req)
             let j = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
             let conn = j["connection"] as? [String: Any]
             return PublicIP(ip: j["ip"] as? String ?? "—",
@@ -65,11 +66,17 @@ enum NetTools {
     }
 
     static func geolocate(_ ip: String) async -> String? {
-        if ip == "*" || ip.hasPrefix("10.") || ip.hasPrefix("192.168.")
-            || ip.hasPrefix("172.16.") || ip.hasPrefix("127.") { return nil }
+        let o = ip.split(separator: ".").compactMap { Int($0) }
+        if ip == "*" || o.count != 4
+            || o[0] == 10 || o[0] == 127
+            || (o[0] == 172 && (16...31).contains(o[1]))
+            || (o[0] == 192 && o[1] == 168)
+            || (o[0] == 169 && o[1] == 254)
+            || (o[0] == 100 && (64...127).contains(o[1])) { return nil }
         guard let url = URL(string: "https://ipwho.is/\(ip)") else { return nil }
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            var req = URLRequest(url: url); req.timeoutInterval = 5
+            let (data, _) = try await URLSession.shared.data(for: req)
             let j = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
             guard (j["success"] as? Bool) == true else { return nil }
             let city = j["city"] as? String ?? ""

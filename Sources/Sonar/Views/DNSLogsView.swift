@@ -9,6 +9,7 @@ import SwiftUI
     @Published var deviceFilter: String?
     @Published var search = ""
     private var timer: Timer?
+    deinit { timer?.invalidate() }
 
     func save() { DNSLogs.saveConfig(config) }
 
@@ -63,7 +64,7 @@ struct DNSLogsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("DNS Logs").font(.largeTitle.weight(.bold))
+                Text("DNS Logs").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                 Text("See which device requested which domain — via your own DNS resolver. No traffic interception; this reads your resolver's query log.")
                     .font(.callout).foregroundStyle(.secondary)
 
@@ -93,11 +94,13 @@ struct DNSLogsView: View {
                     TextField("Pi-hole host or IP (e.g. 192.168.0.5)", text: $m.config.piholeHost).textFieldStyle(.roundedBorder)
                     SecureField("App password (Pi-hole v6)", text: $m.config.piholePassword).textFieldStyle(.roundedBorder)
                     helpLine("In Pi-hole v6: Settings → Web interface / API → create an app password.", nil, nil)
+                    Label("Over plain http the password is sent in cleartext on your LAN — prefer https if your Pi-hole supports it.", systemImage: "exclamationmark.triangle")
+                        .font(.caption2).foregroundStyle(Term.amber)
                 }
 
                 HStack {
                     Button(m.loading ? "Connecting…" : "Connect") { Task { await m.connect() } }
-                        .buttonStyle(.borderedProminent).disabled(m.loading)
+                        .buttonStyle(TermButton()).disabled(m.loading)
                     if !m.status.isEmpty { Text(m.status).font(.caption).foregroundStyle(.red) }
                 }
 
@@ -121,7 +124,7 @@ struct DNSLogsView: View {
     private var connectedView: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
-                StatCard(title: "Queries", value: "\(m.filtered.count)", icon: "list.bullet", tint: .blue)
+                StatCard(title: "Queries", value: "\(m.filtered.count)", icon: "list.bullet", tint: Term.cyan)
                 StatCard(title: "Blocked", value: "\(m.blockedCount)", icon: "hand.raised", tint: .red)
                 StatCard(title: "Devices", value: "\(m.devices.count)", icon: "desktopcomputer", tint: .green)
             }
@@ -137,7 +140,7 @@ struct DNSLogsView: View {
                             Divider()
                             ForEach(m.devices, id: \.self) { d in Button(d) { m.deviceFilter = d } }
                         }.frame(width: 160)
-                        Button("Disconnect") { m.disconnect() }.buttonStyle(.bordered)
+                        Button("Disconnect") { m.disconnect() }.buttonStyle(TermButton())
                     }
                     TextField("Filter domains…", text: $m.search).textFieldStyle(.roundedBorder)
 

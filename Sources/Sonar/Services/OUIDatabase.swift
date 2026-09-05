@@ -27,7 +27,7 @@ enum OUIDatabase {
         "00:12:FB": "Samsung", "5C:0A:5B": "Samsung", "E8:50:8B": "Samsung", "34:23:BA": "Samsung",
         "8C:77:12": "Samsung", "C8:19:F7": "Samsung", "FC:A1:3E": "Samsung",
         // Google / Nest / Chromecast
-        "F4:F5:D8": "Google", "1C:F2:9A": "Google", "3C:5A:B4": "Google", "DA:A1:19": "Google",
+        "F4:F5:D8": "Google", "1C:F2:9A": "Google", "3C:5A:B4": "Google",
         "F8:8F:CA": "Google", "48:D6:D5": "Google",
         // Amazon (Echo / Fire)
         "FC:65:DE": "Amazon", "F0:27:2D": "Amazon", "44:65:0D": "Amazon", "68:37:E9": "Amazon",

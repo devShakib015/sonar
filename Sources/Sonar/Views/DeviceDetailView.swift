@@ -116,7 +116,7 @@ struct DeviceDetailView: View {
                         }
                     }
                     .disabled(scanningPorts)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(TermButton())
                 }
 
                 if scanningPorts {
@@ -133,7 +133,7 @@ struct DeviceDetailView: View {
                         HStack(alignment: .top, spacing: 10) {
                             Text("\(p.port)")
                                 .font(.system(.callout, design: .monospaced))
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(Term.cyan)
                                 .frame(width: 52, alignment: .leading)
                             Text(p.service).font(.callout).textSelection(.enabled)
                             Spacer(minLength: 0)
@@ -215,8 +215,8 @@ struct DeviceDetailView: View {
                     .font(.callout)
                     .scrollContentBackground(.hidden)
                     .padding(6)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color(nsColor: .separatorColor)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Term.inputBG))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Term.border))
                 HStack { Spacer(); Button("Save notes", action: save) }
             }
         }

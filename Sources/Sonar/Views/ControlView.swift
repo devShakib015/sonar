@@ -13,8 +13,8 @@ struct ControlView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Control").font(.largeTitle.weight(.bold))
-                if let toast { Label(toast, systemImage: "info.circle").font(.callout).foregroundStyle(.blue) }
+                Text("Control").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
+                if let toast { Label(toast, systemImage: "info.circle").font(.callout).foregroundStyle(Term.cyan) }
                 wakeCard
                 dnsCard
                 firewallCard
@@ -51,7 +51,7 @@ struct ControlView: View {
                     Button("Wake") {
                         let ok = Control.wake(mac: macField)
                         flash(ok ? "Magic packet sent to \(macField)" : "Invalid MAC address")
-                    }.buttonStyle(.borderedProminent).disabled(macField.isEmpty)
+                    }.buttonStyle(TermButton()).disabled(macField.isEmpty)
                 }
             }
         }
@@ -80,7 +80,7 @@ struct ControlView: View {
     }
 
     private func dnsButton(_ title: String, _ servers: [String]) -> some View {
-        Button(title) { applyDNS(servers) }.buttonStyle(.bordered)
+        Button(title) { applyDNS(servers) }.buttonStyle(TermButton())
     }
 
     private func applyDNS(_ servers: [String]) {
@@ -99,13 +99,13 @@ struct ControlView: View {
                     Spacer()
                     switch firewall {
                     case .some(true): Text("On").foregroundStyle(.green).fontWeight(.semibold)
-                    case .some(false): Text("Off").foregroundStyle(.orange).fontWeight(.semibold)
+                    case .some(false): Text("Off").foregroundStyle(Term.amber).fontWeight(.semibold)
                     case .none: Text("Unknown").foregroundStyle(.secondary)
                     }
                 }
                 HStack {
-                    Button("Enable") { setFW(true) }.buttonStyle(.bordered).disabled(firewall == true)
-                    Button("Disable") { setFW(false) }.buttonStyle(.bordered).disabled(firewall == false)
+                    Button("Enable") { setFW(true) }.buttonStyle(TermButton()).disabled(firewall == true)
+                    Button("Disable") { setFW(false) }.buttonStyle(TermButton()).disabled(firewall == false)
                 }
             }
         }
@@ -126,7 +126,7 @@ struct ControlView: View {
                 Button {
                     Control.open("http://\(scanner.gatewayIP)")
                 } label: { Label("Open router admin (\(scanner.gatewayIP))", systemImage: "wifi.router") }
-                    .buttonStyle(.bordered).disabled(scanner.gatewayIP.isEmpty)
+                    .buttonStyle(TermButton()).disabled(scanner.gatewayIP.isEmpty)
 
                 Divider()
                 Text("Per device").font(.caption).foregroundStyle(.secondary)

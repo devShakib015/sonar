@@ -25,15 +25,15 @@ import Charts
 
 struct MonitorView: View {
     @EnvironmentObject var scanner: Scanner
+    @EnvironmentObject var meter: ThroughputMeter
     @StateObject private var m = MonitorModel()
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Monitor").font(.largeTitle.weight(.bold))
+                Text("Monitor").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                 throughputCard
                 talkersCard
-                alertsCard
                 exportCard
             }
             .padding(20)
@@ -49,17 +49,17 @@ struct MonitorView: View {
                 HStack {
                     SectionTitle(text: "Live throughput", icon: "chart.xyaxis.line")
                     Spacer()
-                    HStack(spacing: 3) { Image(systemName: "arrow.down"); Text(formatBytesPerSec(scanner.downBps)) }.foregroundStyle(.blue)
-                    HStack(spacing: 3) { Image(systemName: "arrow.up"); Text(formatBytesPerSec(scanner.upBps)) }.foregroundStyle(.green)
+                    HStack(spacing: 3) { Image(systemName: "arrow.down"); Text(formatBytesPerSec(meter.downBps)) }.foregroundStyle(Term.cyan)
+                    HStack(spacing: 3) { Image(systemName: "arrow.up"); Text(formatBytesPerSec(meter.upBps)) }.foregroundStyle(.green)
                 }
                 .font(.callout.monospacedDigit())
 
-                if scanner.throughputHistory.count > 1 {
-                    Chart(Array(scanner.throughputHistory.enumerated()), id: \.offset) { i, s in
+                if meter.history.count > 1 {
+                    Chart(Array(meter.history.enumerated()), id: \.offset) { i, s in
                         AreaMark(x: .value("t", i), y: .value("down", s.down / 1024))
-                            .foregroundStyle(.blue.opacity(0.15))
+                            .foregroundStyle(Term.cyan.opacity(0.15))
                         LineMark(x: .value("t", i), y: .value("down", s.down / 1024), series: .value("s", "down"))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Term.cyan)
                         LineMark(x: .value("t", i), y: .value("up", s.up / 1024), series: .value("s", "up"))
                             .foregroundStyle(.green)
                     }
@@ -90,25 +90,12 @@ struct MonitorView: View {
                             Text(p.name).lineLimit(1).frame(width: 190, alignment: .leading)
                             Spacer()
                             Label(formatBytesPerSec(p.inBps), systemImage: "arrow.down")
-                                .foregroundStyle(.blue).font(.caption.monospacedDigit())
+                                .foregroundStyle(Term.cyan).font(.caption.monospacedDigit())
                             Label(formatBytesPerSec(p.outBps), systemImage: "arrow.up")
                                 .foregroundStyle(.green).font(.caption.monospacedDigit())
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private var alertsCard: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionTitle(text: "Alerts", icon: "bell.badge")
-                Toggle("Notify when any device joins or leaves the network", isOn: Binding(
-                    get: { scanner.notifyJoinLeave },
-                    set: { scanner.notifyJoinLeave = $0 }))
-                Text("New/unknown devices always alert. This adds notifications for every join/leave (e.g. a phone coming home).")
-                    .font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -120,13 +107,13 @@ struct MonitorView: View {
                 HStack {
                     Button { Exporter.save(Exporter.csv(scanner.devices), name: "sonar-network.csv") } label: {
                         Label("CSV", systemImage: "tablecells")
-                    }.buttonStyle(.bordered)
+                    }.buttonStyle(TermButton())
                     Button { Exporter.save(Exporter.json(scanner.devices), name: "sonar-network.json") } label: {
                         Label("JSON", systemImage: "curlybraces")
-                    }.buttonStyle(.bordered)
+                    }.buttonStyle(TermButton())
                     Button { Exporter.savePDF(Exporter.report(scanner.devices), name: "sonar-report.pdf") } label: {
                         Label("PDF report", systemImage: "doc.richtext")
-                    }.buttonStyle(.bordered)
+                    }.buttonStyle(TermButton())
                 }
                 Text("\(scanner.devices.count) devices will be exported.").font(.caption).foregroundStyle(.secondary)
             }

@@ -46,7 +46,7 @@ struct WiFiView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Wi-Fi Analyzer").font(.largeTitle.weight(.bold))
+                Text("Wi-Fi Analyzer").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
 
                 if m.info == nil {
                     Card { Label("No Wi-Fi interface found on this Mac.", systemImage: "wifi.slash").foregroundStyle(.secondary) }
@@ -54,7 +54,7 @@ struct WiFiView: View {
                     if m.needsLocation {
                         Card {
                             HStack(spacing: 10) {
-                                Image(systemName: "location.slash").foregroundStyle(.orange)
+                                Image(systemName: "location.slash").foregroundStyle(Term.amber)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Grant Location access for SSID + scanning").fontWeight(.medium)
                                     Text("macOS requires Location permission to expose the network name and nearby APs.")
@@ -81,8 +81,8 @@ struct WiFiView: View {
     }
 
     private func tint(_ name: String) -> Color {
-        switch name { case "green": return .green; case "yellow": return .yellow
-        case "orange": return .orange; case "red": return .red; default: return .primary }
+        switch name { case "green": return .green; case "yellow": return Term.amber
+        case "orange": return Term.amber; case "red": return .red; default: return .primary }
     }
 
     private var linkCard: some View {
@@ -131,10 +131,10 @@ struct WiFiView: View {
                     SectionTitle(text: "Nearby networks", icon: "dot.radiowaves.up.forward")
                     Spacer()
                     Button(m.scanning ? "Scanning…" : "Scan") { Task { await m.runScan() } }
-                        .disabled(m.scanning).buttonStyle(.bordered)
+                        .disabled(m.scanning).buttonStyle(TermButton())
                 }
                 if let advice = WiFi.advice(m.scanResults) {
-                    Label(advice, systemImage: "wand.and.stars").font(.callout).foregroundStyle(.blue)
+                    Label(advice, systemImage: "wand.and.stars").font(.callout).foregroundStyle(Term.cyan)
                 }
                 if m.scanResults.isEmpty {
                     Text("Scans for access points in range and recommends the least-congested channel.")

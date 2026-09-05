@@ -14,13 +14,13 @@ final class Scanner: ObservableObject {
     @Published var lastScan: Date?
     @Published var scanningPortsFor: String?
 
-    @Published var upBps: Double = 0
-    @Published var downBps: Double = 0
-    @Published var throughputHistory: [ThroughputSample] = []
     @Published var metricsHistory: [MetricSample] = []
+    weak var throughput: ThroughputMeter?
 
     @Published var autoRefresh = false
-    @Published var notifyJoinLeave = false
+    @Published var notifyJoinLeave = SettingsStore.notifyJoinLeave {
+        didSet { SettingsStore.notifyJoinLeave = notifyJoinLeave }
+    }
     @Published var interval: TimeInterval = 60
 
     // Network summary (for the header).
@@ -33,28 +33,24 @@ final class Scanner: ObservableObject {
 
     private let store = DeviceStore()
     private let metrics = MetricsStore()
-    private var net: NetworkInfo?
-    private var meterTimer: Timer?
     private var metricsTimer: Timer?
     private var autoTimer: Timer?
-    private var lastCounters: (UInt64, UInt64)?
-    private var lastMeterTime: Date?
 
     init() {
         events = store.events
         anomalies = store.anomalies
         metricsHistory = metrics.samples
         Notifier.requestAuthorization()
-        startMeter()
         metricsTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.recordMetric() }
         }
     }
 
     func recordMetric() {
-        let recent = throughputHistory.suffix(60)
-        let d = recent.isEmpty ? downBps : recent.map { $0.down }.reduce(0, +) / Double(recent.count)
-        let u = recent.isEmpty ? upBps : recent.map { $0.up }.reduce(0, +) / Double(recent.count)
+        let hist = throughput?.history ?? []
+        let recent = hist.suffix(60)
+        let d = recent.isEmpty ? (throughput?.downBps ?? 0) : recent.map { $0.down }.reduce(0, +) / Double(recent.count)
+        let u = recent.isEmpty ? (throughput?.upBps ?? 0) : recent.map { $0.up }.reduce(0, +) / Double(recent.count)
         metrics.record(MetricSample(t: Date(), online: onlineCount, down: d, up: u,
                                     gwLatency: gatewayLatency, netLatency: internetLatency))
         metricsHistory = metrics.samples
@@ -72,11 +68,10 @@ final class Scanner: ObservableObject {
         defer { isScanning = false }
 
         statusText = "Locating active network…"
-        guard let net = NetworkInfo.current() else {
+        guard let net = await Task.detached(operation: { NetworkInfo.current() }).value else {
             statusText = "No active network connection found."
             return
         }
-        self.net = net
         interfaceName = net.interface
         localIP = net.localIP
         gatewayIP = net.gatewayIP
@@ -320,32 +315,7 @@ final class Scanner: ObservableObject {
         }
     }
 
-    func startMeter() {
-        meterTimer?.invalidate()
-        guard let net = net ?? NetworkInfo.current() else { return }
-        self.net = net
-        lastCounters = NetworkInfo.byteCounters(interface: net.interface)
-        lastMeterTime = Date()
-        meterTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tickMeter() }
-        }
-    }
-
-    private func tickMeter() {
-        guard let net = net,
-              let cur = NetworkInfo.byteCounters(interface: net.interface),
-              let prev = lastCounters else { return }
-        let now = Date()
-        let dt = now.timeIntervalSince(lastMeterTime ?? now)
-        if dt > 0 {
-            downBps = cur.0 >= prev.0 ? Double(cur.0 - prev.0) / dt : 0
-            upBps   = cur.1 >= prev.1 ? Double(cur.1 - prev.1) / dt : 0
-            throughputHistory.append(ThroughputSample(time: now, down: downBps, up: upBps))
-            if throughputHistory.count > 120 { throughputHistory.removeFirst(throughputHistory.count - 120) }
-        }
-        lastCounters = cur
-        lastMeterTime = now
-    }
+    func attach(_ meter: ThroughputMeter) { throughput = meter }
 
     func setAutoRefresh(_ on: Bool) {
         autoRefresh = on

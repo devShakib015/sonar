@@ -29,7 +29,7 @@ enum SpeedHistory {
     }
     static func append(_ r: SpeedResult) {
         var a = load(); a.insert(r, at: 0); if a.count > 200 { a = Array(a.prefix(200)) }
-        if let d = try? JSONEncoder().encode(a) { try? d.write(to: url) }
+        if let d = try? JSONEncoder().encode(a) { try? d.write(to: url, options: .atomic) }
     }
 }
 
@@ -69,7 +69,7 @@ enum SpeedHistory {
     var currentOutage: OutageRecord? { current }
 
     func check() async {
-        let gw = NetworkInfo.current()?.gatewayIP ?? ""
+        let gw = await Task.detached(operation: { NetworkInfo.current()?.gatewayIP ?? "" }).value
         let gwOK = gw.isEmpty ? true : await Ping.alive(gw)
         var netOK = await Ping.alive("1.1.1.1")
         if !netOK { netOK = await Ping.alive("8.8.8.8") }
@@ -107,5 +107,5 @@ enum SpeedHistory {
         return String(format: "%.1fh", s / 3600)
     }
 
-    private func save() { if let d = try? JSONEncoder().encode(outages) { try? d.write(to: url) } }
+    private func save() { if let d = try? JSONEncoder().encode(outages) { try? d.write(to: url, options: .atomic) } }
 }

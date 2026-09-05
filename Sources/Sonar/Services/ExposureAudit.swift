@@ -69,8 +69,9 @@ enum IGD {
     }
 
     static func serviceInfo(location: String) async -> (String, String)? {
-        guard let url = URL(string: location),
-              let (data, _) = try? await URLSession.shared.data(from: url) else { return nil }
+        guard let url = URL(string: location) else { return nil }
+        var req = URLRequest(url: url); req.timeoutInterval = 6
+        guard let (data, _) = try? await URLSession.shared.data(for: req) else { return nil }
         let xml = String(decoding: data, as: UTF8.self)
         let base = urlBase(location: url, xml: xml)
         for block in matches(in: xml, pattern: "<service>(.*?)</service>", group: 1, dotAll: true) {

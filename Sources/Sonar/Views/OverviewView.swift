@@ -10,7 +10,7 @@ struct OverviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Your Network").font(.largeTitle.weight(.bold))
+                    Text("Your Network").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                     Text(scanner.interfaceName.isEmpty
                          ? "Press Scan to map every device on your Wi-Fi."
                          : "Interface \(scanner.interfaceName) · \(scanner.subnetSize) addresses in range")
@@ -25,9 +25,9 @@ struct OverviewView: View {
                     StatCard(title: "Devices online", value: "\(scanner.onlineCount)",
                              icon: "wifi", tint: .green)
                     StatCard(title: "New / unknown", value: "\(scanner.newCount)",
-                             icon: "sparkles", tint: .pink)
+                             icon: "sparkles", tint: Term.amber)
                     StatCard(title: "Total tracked", value: "\(scanner.devices.count)",
-                             icon: "square.stack.3d.up", tint: .blue)
+                             icon: "square.stack.3d.up", tint: Term.cyan)
                 }
 
                 Card {
@@ -83,8 +83,8 @@ struct OverviewView: View {
     private var report: HealthReport {
         HealthScore.evaluate(devices: scanner.devices, uptimePercent: uptime.uptimePercent(hours: 24))
     }
-    private var gradeColor: Color {
-        switch report.score { case 90...: return .green; case 70..<90: return .yellow; case 50..<70: return .orange; default: return .red }
+    private func gradeColor(_ score: Int) -> Color {
+        switch score { case 90...: return .green; case 70..<90, 50..<70: return Term.amber; default: return .red }
     }
     private var anomaliesCard: some View {
         Card {
@@ -111,21 +111,22 @@ struct OverviewView: View {
     }
 
     private var healthHero: some View {
-        Card {
+        let r = report
+        return Card {
             HStack(alignment: .center, spacing: 22) {
-                HealthRing(score: report.score, color: gradeColor)
+                HealthRing(score: r.score, color: gradeColor(r.score))
                 VStack(alignment: .leading, spacing: 7) {
                     HStack(spacing: 8) {
                         Text("Network Health").font(.headline)
-                        Text(report.grade).font(.headline.weight(.bold)).foregroundStyle(gradeColor)
+                        Text(r.grade).font(.headline.weight(.bold)).foregroundStyle(gradeColor(r.score))
                             .padding(.horizontal, 9).padding(.vertical, 1)
-                            .background(Capsule().fill(gradeColor.opacity(0.16)))
+                            .background(Capsule().fill(gradeColor(r.score).opacity(0.16)))
                     }
-                    ForEach(report.factors.prefix(4)) { f in
+                    ForEach(r.factors.prefix(4)) { f in
                         HStack(spacing: 6) {
                             Image(systemName: f.good ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                                 .font(.caption)
-                                .foregroundStyle(f.good ? .green : (f.delta <= -10 ? .red : .orange))
+                                .foregroundStyle(f.good ? .green : (f.delta <= -10 ? .red : Term.amber))
                             Text(f.label).font(.callout)
                             Spacer(minLength: 8)
                             if f.delta != 0 { Text("\(f.delta)").font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
@@ -147,11 +148,12 @@ struct HealthRing: View {
         ZStack {
             Circle().stroke(Color.secondary.opacity(0.15), lineWidth: 12)
             Circle().trim(from: 0, to: CGFloat(score) / 100)
-                .stroke(color, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                .stroke(color, style: StrokeStyle(lineWidth: 11, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+                .glow(color, 8)
                 .animation(.easeOut(duration: 0.8), value: score)
             VStack(spacing: 0) {
-                Text("\(score)").font(.system(size: 38, weight: .bold, design: .rounded))
+                Text("\(score)").font(Term.mono(38, .bold)).foregroundStyle(color).glow(color, 6)
                 Text("/ 100").font(.caption2).foregroundStyle(.secondary)
             }
         }

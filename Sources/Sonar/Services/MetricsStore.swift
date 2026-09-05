@@ -23,7 +23,7 @@ final class MetricsStore {
     }
 
     private func save() {
-        if let data = try? JSONEncoder().encode(samples) { try? data.write(to: url) }
+        if let data = try? JSONEncoder().encode(samples) { try? data.write(to: url, options: .atomic) }
     }
     private func load() {
         if let d = try? Data(contentsOf: url),

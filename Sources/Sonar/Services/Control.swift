@@ -55,8 +55,15 @@ enum Control {
         return out.replacingOccurrences(of: "\n", with: ", ")
     }
 
+    static func isValidIP(_ s: String) -> Bool {
+        var v4 = in_addr(); var v6 = in6_addr()
+        return inet_pton(AF_INET, s, &v4) == 1 || inet_pton(AF_INET6, s, &v6) == 1
+    }
+
     @discardableResult
     static func setDNS(_ servers: [String]) -> Bool {
+        // Reject anything that isn't a clean IP literal — prevents shell injection as root.
+        guard servers.allSatisfy({ isValidIP($0) }) else { return false }
         let arg = servers.isEmpty ? "empty" : servers.joined(separator: " ")
         let svc = primaryService()
         let script = "do shell script \"/usr/sbin/networksetup -setdnsservers \\\"\(svc)\\\" \(arg)\" with administrator privileges"

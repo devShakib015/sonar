@@ -105,6 +105,10 @@ by `swift make-icon.swift`.
 
 ## Changelog
 
+### v2.0.0
+- **Futuristic HUD redesign** — phosphor-terminal / sci-fi command-center look: animated depth grid, corner-bracket panels, neon gradient accents, glowing radar & health ring, monospace throughout, CRT scanlines
+- **Full audit hardening (26 fixes)** — all network subprocess sampling moved off the main thread (no UI stutter/freeze), atomic + corruption-safe persistence, **DNS-input validation (root command-injection fix)**, API keys/passwords moved to the **Keychain**, CSV-export formula-injection defused, socket/timeout safety, and view-lifecycle cleanup
+
 ### v1.2.0
 - **Radar view** — animated sweep with every device as a live blip
 - **Network Health Score** — a 0–100 security score on the dashboard

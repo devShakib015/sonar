@@ -23,7 +23,7 @@ struct TrendsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    Text("Trends").font(.largeTitle.weight(.bold))
+                    Text("Trends").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                     Spacer()
                     Picker("", selection: $range) {
                         ForEach(TrendRange.allCases) { Text($0.rawValue).tag($0) }
@@ -53,10 +53,10 @@ struct TrendsView: View {
 
     private var summaryRow: some View {
         HStack(spacing: 12) {
-            StatCard(title: "Samples", value: "\(samples.count)", icon: "chart.dots.scatter", tint: .blue)
+            StatCard(title: "Samples", value: "\(samples.count)", icon: "chart.dots.scatter", tint: Term.cyan)
             StatCard(title: "Peak devices", value: "\(samples.map { $0.online }.max() ?? 0)", icon: "wifi", tint: .green)
-            StatCard(title: "Peak ↓", value: formatBytesPerSec(samples.map { $0.down }.max() ?? 0), icon: "arrow.down", tint: .blue)
-            StatCard(title: "Avg ping", value: avgLatencyText, icon: "timer", tint: .purple)
+            StatCard(title: "Peak ↓", value: formatBytesPerSec(samples.map { $0.down }.max() ?? 0), icon: "arrow.down", tint: Term.cyan)
+            StatCard(title: "Avg ping", value: avgLatencyText, icon: "timer", tint: Term.cyan)
         }
     }
 
@@ -87,14 +87,14 @@ struct TrendsView: View {
                 SectionTitle(text: "Throughput (avg per sample)", icon: "chart.xyaxis.line")
                 Chart(samples) { s in
                     LineMark(x: .value("time", s.t), y: .value("down", s.down / 1024), series: .value("s", "down"))
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(Term.cyan)
                     LineMark(x: .value("time", s.t), y: .value("up", s.up / 1024), series: .value("s", "up"))
                         .foregroundStyle(.green)
                 }
                 .frame(height: 130)
                 .chartYAxisLabel("KB/s")
                 HStack(spacing: 14) {
-                    Label("Download", systemImage: "circle.fill").foregroundStyle(.blue)
+                    Label("Download", systemImage: "circle.fill").foregroundStyle(Term.cyan)
                     Label("Upload", systemImage: "circle.fill").foregroundStyle(.green)
                 }.font(.caption2)
             }
@@ -108,18 +108,18 @@ struct TrendsView: View {
                 Chart(samples) { s in
                     if let g = s.gwLatency {
                         LineMark(x: .value("time", s.t), y: .value("ms", g), series: .value("s", "gateway"))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Term.amber)
                     }
                     if let n = s.netLatency {
                         LineMark(x: .value("time", s.t), y: .value("ms", n), series: .value("s", "internet"))
-                            .foregroundStyle(.purple)
+                            .foregroundStyle(Term.cyan)
                     }
                 }
                 .frame(height: 130)
                 .chartYAxisLabel("ms")
                 HStack(spacing: 14) {
-                    Label("Gateway", systemImage: "circle.fill").foregroundStyle(.orange)
-                    Label("Internet", systemImage: "circle.fill").foregroundStyle(.purple)
+                    Label("Gateway", systemImage: "circle.fill").foregroundStyle(Term.amber)
+                    Label("Internet", systemImage: "circle.fill").foregroundStyle(Term.cyan)
                 }.font(.caption2)
             }
         }

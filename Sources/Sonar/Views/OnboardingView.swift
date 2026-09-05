@@ -7,11 +7,11 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 18) {
             ZStack {
-                Circle().fill(Color.teal.opacity(0.15)).frame(width: 96, height: 96)
-                Image(systemName: "scope").font(.system(size: 46, weight: .medium)).foregroundStyle(.teal)
+                Circle().fill(Term.green.opacity(0.15)).frame(width: 96, height: 96)
+                Image(systemName: "scope").font(.system(size: 46, weight: .medium)).foregroundStyle(Term.green)
             }
             VStack(spacing: 4) {
-                Text("Welcome to Sonar").font(.largeTitle.weight(.bold))
+                Text("Welcome to Sonar").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                 Text("A complete, private network toolkit for your Mac.").foregroundStyle(.secondary)
             }
 
@@ -25,7 +25,7 @@ struct OnboardingView: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(Term.panel))
 
             VStack(spacing: 3) {
                 Text("On the first scan, macOS will ask for permissions:").font(.caption).foregroundStyle(.secondary)
@@ -40,7 +40,7 @@ struct OnboardingView: View {
             } label: {
                 Text("Start scanning").frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent).controlSize(.large).tint(.teal)
+            .buttonStyle(TermButton()).controlSize(.large).tint(Term.green)
         }
         .padding(32)
         .frame(width: 460)
@@ -48,7 +48,7 @@ struct OnboardingView: View {
 
     private func feature(_ icon: String, _ title: String, _ body: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon).font(.title3).foregroundStyle(.teal).frame(width: 28)
+            Image(systemName: icon).font(.title3).foregroundStyle(Term.green).frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).fontWeight(.semibold)
                 Text(body).font(.callout).foregroundStyle(.secondary)

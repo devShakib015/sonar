@@ -8,7 +8,7 @@ struct ReliabilityView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Uptime & Reliability").font(.largeTitle.weight(.bold))
+                Text("Uptime & Reliability").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                 statusCard
                 outagesCard
                 speedHistoryCard
@@ -41,7 +41,7 @@ struct ReliabilityView: View {
                     VStack(spacing: 4) {
                         Text(String(format: "%.2f%%", uptime.uptimePercent(hours: 24)))
                             .font(.system(size: 34, weight: .bold, design: .rounded))
-                            .foregroundStyle(uptime.uptimePercent(hours: 24) > 99 ? .green : .orange)
+                            .foregroundStyle(uptime.uptimePercent(hours: 24) > 99 ? .green : Term.amber)
                         Text("uptime (24h)").font(.caption).foregroundStyle(.secondary)
                     }
                     VStack(alignment: .leading, spacing: 8) {
@@ -82,7 +82,7 @@ struct ReliabilityView: View {
                             }
                             Spacer()
                             Text(o.durationSec.map { UptimeMonitor.fmt($0) } ?? "ongoing")
-                                .font(.caption.monospacedDigit()).foregroundStyle(.orange)
+                                .font(.caption.monospacedDigit()).foregroundStyle(Term.amber)
                         }
                     }
                 }
@@ -100,15 +100,15 @@ struct ReliabilityView: View {
                 } else {
                     Chart(speedHistory.reversed()) { r in
                         LineMark(x: .value("t", r.date), y: .value("down", r.down), series: .value("s", "down"))
-                            .foregroundStyle(.blue)
-                        PointMark(x: .value("t", r.date), y: .value("down", r.down)).foregroundStyle(.blue)
+                            .foregroundStyle(Term.cyan)
+                        PointMark(x: .value("t", r.date), y: .value("down", r.down)).foregroundStyle(Term.cyan)
                         LineMark(x: .value("t", r.date), y: .value("up", r.up), series: .value("s", "up"))
                             .foregroundStyle(.green)
                     }
                     .frame(height: 140)
                     .chartYAxisLabel("Mbps")
                     HStack(spacing: 14) {
-                        Label("Download", systemImage: "circle.fill").foregroundStyle(.blue)
+                        Label("Download", systemImage: "circle.fill").foregroundStyle(Term.cyan)
                         Label("Upload", systemImage: "circle.fill").foregroundStyle(.green)
                     }.font(.caption2)
                     ForEach(speedHistory.prefix(5)) { r in

@@ -12,13 +12,13 @@ struct BonjourView: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Bonjour Services").font(.largeTitle.weight(.bold))
+                        Text("Bonjour Services").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                         Text("What each device advertises on the network — AirPlay, printers, HomeKit, SSH, file sharing and more.")
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Button(browser.scanning ? "Scanning…" : "Scan services") { browser.start() }
-                        .buttonStyle(.borderedProminent).disabled(browser.scanning)
+                        .buttonStyle(TermButton()).disabled(browser.scanning)
                 }
 
                 Card {
@@ -38,8 +38,8 @@ struct BonjourView: View {
                                     Text(s.type)
                                         .font(.caption.weight(.medium))
                                         .padding(.horizontal, 7).padding(.vertical, 2)
-                                        .background(Capsule().fill(Color.teal.opacity(0.16)))
-                                        .foregroundStyle(.teal)
+                                        .background(Capsule().fill(Term.green.opacity(0.16)))
+                                        .foregroundStyle(Term.green)
                                         .frame(width: 150, alignment: .leading)
                                     Text(s.name).lineLimit(1)
                                     Spacer()

@@ -50,13 +50,13 @@ struct RadarView: View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Radar").font(.largeTitle.weight(.bold))
+                    Text("Radar").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                     Text("\(scanner.onlineCount) devices online").foregroundStyle(.secondary).font(.callout)
                 }
                 Spacer()
                 Button { Task { await scanner.scanNow() } } label: {
                     Label(scanner.isScanning ? "Scanning…" : "Scan", systemImage: "dot.radiowaves.left.and.right")
-                }.disabled(scanner.isScanning).buttonStyle(.borderedProminent)
+                }.disabled(scanner.isScanning).buttonStyle(TermButton())
             }
             .padding(20)
 
@@ -79,7 +79,7 @@ struct RadarView: View {
     private func drawRadar(_ ctx: GraphicsContext, _ size: CGSize, _ sweep: Double) {
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
         let maxR = min(size.width, size.height) / 2 - 34
-        let teal = Color.teal
+        let teal = Term.green
 
         // rings
         for f in [0.26, 0.5, 0.75, 1.0] {
@@ -101,12 +101,12 @@ struct RadarView: View {
         wedge.closeSubpath()
         let beamEnd = CGPoint(x: center.x + cos(sweep) * maxR, y: center.y + sin(sweep) * maxR)
         ctx.fill(wedge, with: .linearGradient(
-            Gradient(colors: [teal.opacity(0.35), teal.opacity(0)]),
+            Gradient(colors: [Term.cyan.opacity(0.4), teal.opacity(0.12), teal.opacity(0)]),
             startPoint: center, endPoint: beamEnd))
 
         // leading edge line
         var edge = Path(); edge.move(to: center); edge.addLine(to: beamEnd)
-        ctx.stroke(edge, with: .color(teal.opacity(0.5)), lineWidth: 1.5)
+        ctx.stroke(edge, with: .color(Term.cyan.opacity(0.7)), lineWidth: 1.5)
 
         // center
         ctx.fill(Path(ellipseIn: CGRect(x: center.x - 5, y: center.y - 5, width: 10, height: 10)),
@@ -118,7 +118,7 @@ struct RadarView: View {
         let base: Double = b.online ? 1 : 0.28
         ZStack {
             if b.type == .thisDevice {
-                Circle().fill(Color.blue.opacity(0.9)).frame(width: 14, height: 14)
+                Circle().fill(Term.cyan.opacity(0.9)).frame(width: 14, height: 14)
                     .overlay(Circle().stroke(.white.opacity(0.6), lineWidth: 1))
             } else {
                 Circle().fill(b.type.tint.opacity(0.25 + 0.5 * glow))
@@ -127,7 +127,7 @@ struct RadarView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(b.type.tint.opacity(base))
                     .padding(6)
-                    .background(Circle().fill(Color(nsColor: .windowBackgroundColor).opacity(0.9)))
+                    .background(Circle().fill(Term.panel.opacity(0.9)))
                     .overlay(Circle().stroke(b.type.tint.opacity(base), lineWidth: 1))
             }
         }

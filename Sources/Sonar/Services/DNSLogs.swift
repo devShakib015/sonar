@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 // Reads per-device DNS query logs from the user's OWN resolver (NextDNS cloud
 // API or a self-hosted Pi-hole v6). This is the legitimate, consent-based way to
@@ -32,12 +33,18 @@ enum DNSLogs {
     static let configKey = "sonar.dnslog.config"
 
     static func loadConfig() -> DNSLogConfig {
+        var c = DNSLogConfig()
         if let d = UserDefaults.standard.data(forKey: configKey),
-           let c = try? JSONDecoder().decode(DNSLogConfig.self, from: d) { return c }
-        return DNSLogConfig()
+           let dec = try? JSONDecoder().decode(DNSLogConfig.self, from: d) { c = dec }
+        c.nextdnsKey = Keychain.get("nextdnsKey")
+        c.piholePassword = Keychain.get("piholePassword")
+        return c
     }
     static func saveConfig(_ c: DNSLogConfig) {
-        if let d = try? JSONEncoder().encode(c) { UserDefaults.standard.set(d, forKey: configKey) }
+        Keychain.set(c.nextdnsKey, for: "nextdnsKey")
+        Keychain.set(c.piholePassword, for: "piholePassword")
+        var redacted = c; redacted.nextdnsKey = ""; redacted.piholePassword = ""
+        if let d = try? JSONEncoder().encode(redacted) { UserDefaults.standard.set(d, forKey: configKey) }
     }
 
     static func fetch(_ c: DNSLogConfig) async throws -> [DNSQuery] {
@@ -115,5 +122,32 @@ enum DNSLogs {
         let f1 = ISO8601DateFormatter(); f1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let d = f1.date(from: s) { return d }
         return ISO8601DateFormatter().date(from: s) ?? Date()
+    }
+}
+
+// Secrets (API keys / passwords) live in the Keychain, never in UserDefaults.
+enum Keychain {
+    private static let service = "com.shakib.sonar"
+    static func set(_ value: String, for account: String) {
+        let base: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                    kSecAttrService as String: service,
+                                    kSecAttrAccount as String: account]
+        SecItemDelete(base as CFDictionary)
+        guard !value.isEmpty else { return }
+        var add = base
+        add[kSecValueData as String] = Data(value.utf8)
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        SecItemAdd(add as CFDictionary, nil)
+    }
+    static func get(_ account: String) -> String {
+        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                kSecAttrService as String: service,
+                                kSecAttrAccount as String: account,
+                                kSecReturnData as String: true,
+                                kSecMatchLimit as String: kSecMatchLimitOne]
+        var out: CFTypeRef?
+        guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess,
+              let d = out as? Data, let s = String(data: d, encoding: .utf8) else { return "" }
+        return s
     }
 }

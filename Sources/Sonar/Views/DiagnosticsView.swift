@@ -17,12 +17,14 @@ import Charts
             while !Task.isCancelled {
                 let l = await Task.detached { Ping.latency(h) }.value ?? -1
                 await MainActor.run { self?.push(l) }
-                if await MainActor.run(body: { self?.running == false }) { break }
+                let alive = await MainActor.run { self?.running == true }
+                if !alive { break }
                 try? await Task.sleep(nanoseconds: 900_000_000)
             }
         }
     }
     func stop() { running = false; task?.cancel(); task = nil }
+    deinit { task?.cancel() }
     private func push(_ v: Double) { samples.append(v); if samples.count > 60 { samples.removeFirst() } }
 
     var valid: [Double] { samples.filter { $0 >= 0 } }
@@ -55,7 +57,7 @@ struct DiagnosticsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Diagnostics").font(.largeTitle.weight(.bold))
+                Text("Diagnostics").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
                 SpeedTestCard()
                 PingCard()
                 TracerouteCard()
@@ -89,7 +91,7 @@ struct SpeedTestCard: View {
                     SectionTitle(text: "Internet speed test", icon: "gauge.with.dots.needle.67percent")
                     Spacer()
                     Button(st.isRunning ? "Testing…" : "Start test") { Task { await st.start() } }
-                        .disabled(st.isRunning).buttonStyle(.borderedProminent)
+                        .disabled(st.isRunning).buttonStyle(TermButton())
                 }
                 if st.isRunning {
                     VStack(spacing: 2) {
@@ -100,7 +102,7 @@ struct SpeedTestCard: View {
                     .frame(maxWidth: .infinity)
                 }
                 HStack {
-                    StatMini(label: "Download", value: st.downMbps > 0 ? String(format: "%.1f", st.downMbps) : "—", tint: .blue)
+                    StatMini(label: "Download", value: st.downMbps > 0 ? String(format: "%.1f", st.downMbps) : "—", tint: Term.cyan)
                     StatMini(label: "Upload", value: st.upMbps > 0 ? String(format: "%.1f", st.upMbps) : "—", tint: .green)
                     StatMini(label: "Ping", value: st.latencyMs.map { String(format: "%.0f ms", $0) } ?? "—")
                     StatMini(label: "Jitter", value: st.jitterMs.map { String(format: "%.0f ms", $0) } ?? "—")
@@ -122,7 +124,7 @@ struct PingCard: View {
                     TextField("Host", text: $pm.host).frame(width: 140).textFieldStyle(.roundedBorder)
                         .disabled(pm.running)
                     Button(pm.running ? "Stop" : "Start") { pm.toggle() }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(TermButton())
                 }
                 if pm.samples.isEmpty {
                     Text("Continuously pings a host and charts round-trip latency.")
@@ -130,7 +132,7 @@ struct PingCard: View {
                 } else {
                     Chart(Array(pm.samples.enumerated()), id: \.offset) { i, v in
                         LineMark(x: .value("n", i), y: .value("ms", max(v, 0)))
-                            .foregroundStyle(.blue).interpolationMethod(.catmullRom)
+                            .foregroundStyle(Term.cyan).interpolationMethod(.catmullRom)
                         if v < 0 {
                             PointMark(x: .value("n", i), y: .value("ms", 0)).foregroundStyle(.red)
                         }
@@ -139,7 +141,7 @@ struct PingCard: View {
                     .chartYAxisLabel("ms")
                     HStack {
                         StatMini(label: "min", value: pm.minMs.map { String(format: "%.0f", $0) } ?? "—")
-                        StatMini(label: "avg", value: pm.avgMs.map { String(format: "%.0f", $0) } ?? "—", tint: .blue)
+                        StatMini(label: "avg", value: pm.avgMs.map { String(format: "%.0f", $0) } ?? "—", tint: Term.cyan)
                         StatMini(label: "max", value: pm.maxMs.map { String(format: "%.0f", $0) } ?? "—")
                         StatMini(label: "loss", value: "\(pm.lossPct)%", tint: pm.lossPct > 0 ? .red : .primary)
                     }
@@ -160,7 +162,7 @@ struct TracerouteCard: View {
                     TextField("Host", text: $tm.host).frame(width: 160).textFieldStyle(.roundedBorder)
                         .disabled(tm.running)
                     Button(tm.running ? "Tracing…" : "Trace") { Task { await tm.run() } }
-                        .disabled(tm.running).buttonStyle(.bordered)
+                        .disabled(tm.running).buttonStyle(TermButton())
                 }
                 if tm.hops.isEmpty && !tm.running {
                     Text("Maps every network hop between you and the destination, with geolocation.")
@@ -211,7 +213,7 @@ struct DNSCard: View {
                     }
                     .frame(height: 88)
                     .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Term.inputBG))
                 }
             }
         }
@@ -244,7 +246,7 @@ struct WhoisCard: View {
                     }
                     .frame(height: 160)
                     .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Term.inputBG))
                 }
             }
         }

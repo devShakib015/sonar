@@ -4,7 +4,13 @@ import AppKit
 enum Exporter {
     private static func iso(_ d: Date) -> String { ISO8601DateFormatter().string(from: d) }
     private static func csvEscape(_ s: String) -> String {
-        (s.contains(",") || s.contains("\"")) ? "\"" + s.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : s
+        var v = s
+        // Defuse spreadsheet formula injection from network-controlled fields.
+        if let f = v.first, "=+-@\t\r".contains(f) { v = "'" + v }
+        if v.contains(",") || v.contains("\"") || v.contains("\n") || v.contains("\r") {
+            return "\"" + v.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return v
     }
 
     static func csv(_ devices: [Device]) -> String {
@@ -47,7 +53,7 @@ enum Exporter {
         panel.nameFieldStringValue = name
         panel.canCreateDirectories = true
         if panel.runModal() == .OK, let url = panel.url {
-            try? text.data(using: .utf8)?.write(to: url)
+            try? text.data(using: .utf8)?.write(to: url, options: .atomic)
         }
     }
 
@@ -65,6 +71,6 @@ enum Exporter {
         let pdf = tv.dataWithPDF(inside: tv.bounds)
         let panel = NSSavePanel()
         panel.nameFieldStringValue = name
-        if panel.runModal() == .OK, let url = panel.url { try? pdf.write(to: url) }
+        if panel.runModal() == .OK, let url = panel.url { try? pdf.write(to: url, options: .atomic) }
     }
 }

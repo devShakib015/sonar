@@ -9,14 +9,13 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Settings").font(.largeTitle.weight(.bold))
+                Text("Settings").font(Term.mono(26, .bold)).foregroundStyle(Term.green).glow()
 
                 Card {
                     VStack(alignment: .leading, spacing: 12) {
                         SectionTitle(text: "Startup & appearance", icon: "power")
                         Toggle("Launch Sonar at login", isOn: $launchAtLogin)
                             .onChange(of: launchAtLogin) { _, v in
-                                SettingsStore.launchAtLogin = v
                                 _ = LoginItem.set(v)
                             }
                         Toggle("Menu-bar only (hide Dock icon)", isOn: $menuBarOnly)
@@ -43,7 +42,7 @@ struct SettingsView: View {
                 Card {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionTitle(text: "About", icon: "info.circle")
-                        InfoRow(label: "Version", value: "1.2.0")
+                        InfoRow(label: "Version", value: "2.0.0")
                         InfoRow(label: "Interface", value: scanner.interfaceName)
                         Link("github.com/devShakib015/sonar", destination: URL(string: "https://github.com/devShakib015/sonar")!)
                             .font(.callout)

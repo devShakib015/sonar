@@ -24,7 +24,15 @@ extension PortScanner {
 
     static func serviceName(_ p: Int) -> String { commonServices[p] ?? "open" }
 
-    static let commonServices: [Int: String] = [
+    // Single source of truth: the curated scanner ports, plus extras for the
+    // wider ranges the advanced scanner can hit. Built once.
+    static let commonServices: [Int: String] = {
+        var m = Dictionary(ports.map { ($0.port, $0.service) }, uniquingKeysWith: { a, _ in a })
+        for (k, v) in extraServices where m[k] == nil { m[k] = v }
+        return m
+    }()
+
+    static let extraServices: [Int: String] = [
         21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS", 80: "HTTP", 110: "POP3",
         135: "MS-RPC", 139: "NetBIOS", 143: "IMAP", 443: "HTTPS", 445: "SMB", 515: "LPD",
         548: "AFP", 554: "RTSP", 587: "SMTP", 631: "IPP", 993: "IMAPS", 995: "POP3S",
