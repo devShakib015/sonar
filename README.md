@@ -105,6 +105,9 @@ by `swift make-icon.swift`.
 
 ## Changelog
 
+### v2.1.0
+- **Animated boot sequence** — a terminal-style system-init (module checks + neon progress bar → `SYSTEM READY`) plays on launch, then fades into the HUD
+
 ### v2.0.0
 - **Futuristic HUD redesign** — phosphor-terminal / sci-fi command-center look: animated depth grid, corner-bracket panels, neon gradient accents, glowing radar & health ring, monospace throughout, CRT scanlines
 - **Full audit hardening (26 fixes)** — all network subprocess sampling moved off the main thread (no UI stutter/freeze), atomic + corruption-safe persistence, **DNS-input validation (root command-injection fix)**, API keys/passwords moved to the **Keychain**, CSV-export formula-injection defused, socket/timeout safety, and view-lifecycle cleanup

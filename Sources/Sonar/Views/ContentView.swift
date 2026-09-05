@@ -11,7 +11,8 @@ struct ContentView: View {
     @State private var selection: Panel? = .overview
     @State private var showHistory = false
     @State private var search = ""
-    @State private var showOnboarding = !SettingsStore.onboarded
+    @State private var showOnboarding = false
+    @State private var booting = true
 
     private func matchesSearch(_ d: Device) -> Bool {
         guard !search.isEmpty else { return true }
@@ -97,11 +98,22 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showHistory) { HistoryView() }
         .onAppear { scanner.attach(meter); meter.start() }
-        .task { if scanner.lastScan == nil && !showOnboarding { await scanner.scanNow() } }
+        .overlay {
+            if booting { BootView { finishBoot() }.transition(.opacity) }
+        }
         .background(HUDBackground())
         .background(WindowStyler())
         .preferredColorScheme(.dark)
         .crt()
+    }
+
+    private func finishBoot() {
+        withAnimation(.easeOut(duration: 0.45)) { booting = false }
+        if SettingsStore.onboarded {
+            if scanner.lastScan == nil { Task { await scanner.scanNow() } }
+        } else {
+            showOnboarding = true
+        }
     }
 
     @ViewBuilder
