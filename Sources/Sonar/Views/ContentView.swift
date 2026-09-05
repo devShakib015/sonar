@@ -31,9 +31,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 0) {
-                        Text("SONAR").font(Term.mono(21, .bold)).foregroundStyle(Term.accent).glow(Term.cyan, 7)
-                        Text("//").font(Term.mono(21, .bold)).foregroundStyle(Term.dim)
-                        BlinkingCursor(size: 21)
+                        GlitchWordmark(size: 21)
                         Spacer()
                     }
                     Text(scanner.localIP.isEmpty ? "\u{25CF} no link" : "\u{25CF} \(scanner.onlineCount) hosts up \u{00B7} \(scanner.localIP)")

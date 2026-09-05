@@ -124,6 +124,59 @@ struct BlinkingCursor: View {
     }
 }
 
+struct GlitchWordmark: View {
+    var size: CGFloat = 21
+    var showCursor: Bool = true
+    @State private var jitter: CGFloat = 0
+    @State private var flick: Double = 1
+    @State private var glitching = false
+    @State private var alive = true
+
+    private func word(_ style: AnyShapeStyle) -> some View {
+        HStack(spacing: 0) {
+            Text("SONAR").font(Term.mono(size, .bold))
+            Text("//").font(Term.mono(size, .bold))
+        }
+        .foregroundStyle(style)
+    }
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            if glitching {
+                word(AnyShapeStyle(Term.cyan.opacity(0.85))).offset(x: -jitter, y: 1).blendMode(.screen)
+                word(AnyShapeStyle(Term.red.opacity(0.85))).offset(x: jitter, y: -1).blendMode(.screen)
+            }
+            HStack(spacing: 0) {
+                Text("SONAR").font(Term.mono(size, .bold)).foregroundStyle(Term.accent).glow(Term.cyan, size * 0.32)
+                Text("//").font(Term.mono(size, .bold)).foregroundStyle(Term.dim)
+                if showCursor { BlinkingCursor(size: size) }
+            }
+            .opacity(flick)
+            .offset(x: glitching ? jitter * 0.4 : 0)
+        }
+        .onAppear { alive = true; schedule() }
+        .onDisappear { alive = false }
+    }
+
+    private func schedule() {
+        guard alive else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 1.8...5.0)) {
+            burst(Int.random(in: 3...7))
+        }
+    }
+    private func burst(_ remaining: Int) {
+        guard alive else { return }
+        guard remaining > 0 else {
+            glitching = false; jitter = 0; flick = 1
+            schedule(); return
+        }
+        glitching = true
+        jitter = CGFloat.random(in: 1...4)
+        flick = Double.random(in: 0.5...1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.045) { burst(remaining - 1) }
+    }
+}
+
 struct WindowStyler: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let v = NSView()

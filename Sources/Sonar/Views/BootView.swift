@@ -19,11 +19,7 @@ struct BootView: View {
         ZStack {
             Term.bg2.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 7) {
-                HStack(spacing: 0) {
-                    Text("SONAR").font(Term.mono(44, .bold)).foregroundStyle(Term.accent).glow(Term.cyan, 12)
-                    Text("//").font(Term.mono(44, .bold)).foregroundStyle(Term.dim)
-                    BlinkingCursor(size: 44)
-                }
+                GlitchWordmark(size: 44)
                 Text("N E T W O R K   C O M M A N D   ·   v2.0.0")
                     .font(Term.mono(10)).foregroundStyle(Term.dim).tracking(3)
                     .padding(.bottom, 20)

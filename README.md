@@ -105,6 +105,9 @@ by `swift make-icon.swift`.
 
 ## Changelog
 
+### v2.1.1
+- **Glitch wordmark** — the `SONAR//` logo flickers with an RGB channel-split glitch (boot screen + sidebar)
+
 ### v2.1.0
 - **Animated boot sequence** — a terminal-style system-init (module checks + neon progress bar → `SYSTEM READY`) plays on launch, then fades into the HUD
 
