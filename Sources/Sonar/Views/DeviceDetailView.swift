@@ -22,6 +22,7 @@ struct DeviceDetailView: View {
                 portsCard
                 if !findings.isEmpty { securityCard }
                 if !device.mac.isEmpty { alertsCard }
+                if !device.mac.isEmpty { timelineCard }
                 notesCard
             }
             .padding(20)
@@ -178,6 +179,29 @@ struct DeviceDetailView: View {
                     .onChange(of: alertJoin) { _, _ in scanner.setAlerts(for: device, onJoin: alertJoin, onLeave: alertLeave) }
                 Toggle("Notify when it leaves the network", isOn: $alertLeave)
                     .onChange(of: alertLeave) { _, _ in scanner.setAlerts(for: device, onJoin: alertJoin, onLeave: alertLeave) }
+            }
+        }
+    }
+
+    private var timelineCard: some View {
+        let mine = Array(scanner.events.filter { $0.mac == device.mac }.prefix(10))
+        return Card {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionTitle(text: "Timeline", icon: "clock.arrow.circlepath")
+                if mine.isEmpty {
+                    Text("No join/leave history recorded yet.").font(.callout).foregroundStyle(.secondary)
+                } else {
+                    ForEach(mine) { e in
+                        HStack(spacing: 10) {
+                            Image(systemName: e.kind.symbol).foregroundStyle(e.kind.tint).frame(width: 18)
+                            Text(e.kind.verb).fontWeight(.medium)
+                            Spacer()
+                            Text(e.date.formatted(date: .abbreviated, time: .shortened))
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        .font(.callout)
+                    }
+                }
             }
         }
     }

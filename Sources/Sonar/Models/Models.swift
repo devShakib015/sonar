@@ -186,3 +186,12 @@ struct MetricSample: Codable, Identifiable, Hashable {
     let gwLatency: Double?
     let netLatency: Double?
 }
+
+struct AnomalyRecord: Codable, Identifiable {
+    var id = UUID()
+    var date = Date()
+    let kind: String
+    let title: String
+    let detail: String
+    let severity: Int   // 1 caution, 2 warning
+}

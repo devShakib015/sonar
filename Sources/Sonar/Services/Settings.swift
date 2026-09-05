@@ -11,6 +11,10 @@ enum SettingsStore {
         get { UserDefaults.standard.bool(forKey: "sonar.menuBarOnly") }
         set { UserDefaults.standard.set(newValue, forKey: "sonar.menuBarOnly") }
     }
+    static var onboarded: Bool {
+        get { UserDefaults.standard.bool(forKey: "sonar.onboarded") }
+        set { UserDefaults.standard.set(newValue, forKey: "sonar.onboarded") }
+    }
 }
 
 enum LoginItem {

@@ -6,6 +6,7 @@ import Combine
 final class Scanner: ObservableObject {
     @Published var devices: [Device] = []
     @Published var events: [ScanEvent] = []
+    @Published var anomalies: [AnomalyRecord] = []
 
     @Published var isScanning = false
     @Published var progress: Double = 0
@@ -41,6 +42,7 @@ final class Scanner: ObservableObject {
 
     init() {
         events = store.events
+        anomalies = store.anomalies
         metricsHistory = metrics.samples
         Notifier.requestAuthorization()
         startMeter()
@@ -162,6 +164,18 @@ final class Scanner: ObservableObject {
     // MARK: - Merge + presence diffing
 
     private func applyResults(_ incoming: [Device]) {
+        if let gw = incoming.first(where: { $0.isGateway }), !gw.mac.isEmpty {
+            let key = "sonar.gatewayMAC"
+            let prev = UserDefaults.standard.string(forKey: key)
+            if let prev, prev != gw.mac {
+                store.addAnomaly(AnomalyRecord(kind: "gatewayMAC",
+                    title: "Gateway MAC address changed",
+                    detail: "Your router's MAC went from \(prev) to \(gw.mac). This can mean the router was replaced — or that a rogue gateway (evil-twin) is on the network. Verify it's really your router.",
+                    severity: 2))
+                Notifier.notify(title: "⚠︎ Gateway MAC changed", body: "Possible rogue router — verify your gateway in Sonar.")
+            }
+            UserDefaults.standard.set(gw.mac, forKey: key)
+        }
         let oldByID = Dictionary(devices.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         var result: [Device] = []
         var seen = Set<String>()
@@ -183,6 +197,13 @@ final class Scanner: ObservableObject {
                     dev.isNew = true
                     store.addEvent(ScanEvent(kind: .newDevice, mac: dev.mac, name: dev.displayName, ip: dev.ip))
                     Notifier.newDevice(name: dev.displayName, ip: dev.ip)
+                    let hour = Calendar.current.component(.hour, from: Date())
+                    if hour < 6 {
+                        store.addAnomaly(AnomalyRecord(kind: "oddHours",
+                            title: "New device at odd hours",
+                            detail: "\(dev.displayName) (\(dev.ip)) first appeared at \(Date().formatted(date: .omitted, time: .shortened)) — outside typical hours.",
+                            severity: 1))
+                    }
                 }
             }
 
@@ -219,6 +240,7 @@ final class Scanner: ObservableObject {
         store.saveRecords()
         devices = sortDevices(result)
         events = store.events
+        anomalies = store.anomalies
     }
 
     private func sortDevices(_ list: [Device]) -> [Device] {
@@ -285,6 +307,7 @@ final class Scanner: ObservableObject {
     }
 
     func clearEvents() { store.clearEvents(); events = [] }
+    func clearAnomalies() { store.clearAnomalies(); anomalies = [] }
 
     // MARK: - Health + throughput meter
 

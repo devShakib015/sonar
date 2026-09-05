@@ -5,16 +5,19 @@ import Foundation
 final class DeviceStore {
     private(set) var records: [String: StoredDevice] = [:]
     private(set) var events: [ScanEvent] = []
+    private(set) var anomalies: [AnomalyRecord] = []
 
     private let dir: URL
     private let recordsURL: URL
     private let eventsURL: URL
+    private let anomaliesURL: URL
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         dir = base.appendingPathComponent("Sonar", isDirectory: true)
         recordsURL = dir.appendingPathComponent("devices.json")
         eventsURL = dir.appendingPathComponent("events.json")
+        anomaliesURL = dir.appendingPathComponent("anomalies.json")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         load()
     }
@@ -74,6 +77,16 @@ final class DeviceStore {
 
     func clearEvents() { events = []; saveEvents() }
 
+    func addAnomaly(_ a: AnomalyRecord) {
+        anomalies.insert(a, at: 0)
+        if anomalies.count > 200 { anomalies = Array(anomalies.prefix(200)) }
+        if let d = try? JSONEncoder().encode(anomalies) { try? d.write(to: anomaliesURL) }
+    }
+    func clearAnomalies() {
+        anomalies = []
+        if let d = try? JSONEncoder().encode(anomalies) { try? d.write(to: anomaliesURL) }
+    }
+
     // MARK: persistence
     func saveRecords() {
         if let data = try? JSONEncoder().encode(records) { try? data.write(to: recordsURL) }
@@ -86,5 +99,7 @@ final class DeviceStore {
            let r = try? JSONDecoder().decode([String: StoredDevice].self, from: d) { records = r }
         if let d = try? Data(contentsOf: eventsURL),
            let e = try? JSONDecoder().decode([ScanEvent].self, from: d) { events = e }
+        if let d = try? Data(contentsOf: anomaliesURL),
+           let a = try? JSONDecoder().decode([AnomalyRecord].self, from: d) { anomalies = a }
     }
 }

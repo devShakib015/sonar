@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum Panel: Hashable {
-    case overview, diagnostics, wifi, control, monitor, trends, dnsLogs, exposure, uptime, services, settings
+    case overview, radar, diagnostics, wifi, control, monitor, trends, dnsLogs, exposure, uptime, services, settings
     case device(String)
 }
 
@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var selection: Panel? = .overview
     @State private var showHistory = false
     @State private var search = ""
+    @State private var showOnboarding = !SettingsStore.onboarded
 
     private func matchesSearch(_ d: Device) -> Bool {
         guard !search.isEmpty else { return true }
@@ -39,6 +40,7 @@ struct ContentView: View {
                 List(selection: $selection) {
                     Section("Tools") {
                         Label("Overview", systemImage: "square.grid.2x2").tag(Panel.overview)
+                        Label("Radar", systemImage: "scope").tag(Panel.radar)
                         Label("Diagnostics", systemImage: "stethoscope").tag(Panel.diagnostics)
                         Label("Wi-Fi", systemImage: "wifi").tag(Panel.wifi)
                         Label("Exposure", systemImage: "lock.shield").tag(Panel.exposure)
@@ -65,6 +67,7 @@ struct ContentView: View {
                     }
                 }
                 .listStyle(.sidebar)
+                .animation(.default, value: scanner.devices.count)
                 Divider()
                 sidebarFooter
             }
@@ -73,13 +76,18 @@ struct ContentView: View {
             detailView
         }
         .toolbar { toolbarContent }
+        .tint(.teal)
+        .sheet(isPresented: $showOnboarding) {
+            OnboardingView(onStart: { Task { await scanner.scanNow() } })
+        }
         .sheet(isPresented: $showHistory) { HistoryView() }
-        .task { if scanner.lastScan == nil { await scanner.scanNow() } }
+        .task { if scanner.lastScan == nil && !showOnboarding { await scanner.scanNow() } }
     }
 
     @ViewBuilder
     private var detailView: some View {
         switch selection {
+        case .radar:       RadarView(selectDevice: { selection = .device($0) })
         case .diagnostics: DiagnosticsView()
         case .wifi:        WiFiView()
         case .exposure:    ExposureView()

@@ -8,6 +8,11 @@ monitoring, and reporting. No dependencies, no tracking, fully free.
 
 ## Features
 
+### 🛰️ Radar & dashboard
+- **Animated radar** — every device shown as a live blip sweeping around your Mac; click one to inspect it
+- **Network Health Score** — a 0–100 security score with a grade and actionable factors
+- **Security anomaly detection** — alerts on gateway-MAC changes (rogue router / evil-twin), new devices at odd hours, and per-device timelines
+
 ### 🔍 Devices
 - Ping-sweep + ARP discovery of every device (IP, MAC, vendor, hostname)
 - mDNS/Bonjour names, SSDP/UPnP enumeration, randomized-MAC detection
@@ -99,6 +104,12 @@ Requires macOS 14+ and the Swift toolchain (Xcode). The radar icon is generated
 by `swift make-icon.swift`.
 
 ## Changelog
+
+### v1.2.0
+- **Radar view** — animated sweep with every device as a live blip
+- **Network Health Score** — a 0–100 security score on the dashboard
+- **Anomaly detection** — gateway-MAC-change alerts, odd-hours device flags, per-device timelines
+- **Premium polish** — brand accent, first-run onboarding, and smoother animations
 
 ### v1.1.0
 - **Exposure audit** — UPnP port-mapping check (what your router forwards to the internet) + advanced port scanner for any host/range

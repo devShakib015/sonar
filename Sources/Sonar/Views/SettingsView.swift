@@ -43,7 +43,7 @@ struct SettingsView: View {
                 Card {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionTitle(text: "About", icon: "info.circle")
-                        InfoRow(label: "Version", value: "1.1.0")
+                        InfoRow(label: "Version", value: "1.2.0")
                         InfoRow(label: "Interface", value: scanner.interfaceName)
                         Link("github.com/devShakib015/sonar", destination: URL(string: "https://github.com/devShakib015/sonar")!)
                             .font(.callout)
