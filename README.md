@@ -98,6 +98,21 @@ swift run Sonar --diagnose # headless engine self-test
 Requires macOS 14+ and the Swift toolchain (Xcode). The radar icon is generated
 by `swift make-icon.swift`.
 
+## Changelog
+
+### v1.1.0
+- **Exposure audit** — UPnP port-mapping check (what your router forwards to the internet) + advanced port scanner for any host/range
+- **Uptime & reliability** — continuous outage monitor with a drop log + 24h uptime %, plus speed-test history charts
+- **Bonjour / mDNS services** — browse what each device advertises; web-UI title grab for better identification
+- **Settings & alerts** — launch at login, menu-bar-only mode, device search, and per-device join/leave alert rules
+
+### v1.0.1
+- Fixed the download speed test (was reporting 0.0) with a robust chunked download
+- Added the MIT license
+
+### v1.0.0
+- Initial release: device discovery & fingerprinting, port scan with service banners, security-exposure flags, diagnostics (speed test, ping, traceroute, DNS, WHOIS, public IP), Wi-Fi analyzer, control actions (Wake-on-LAN, DNS switching, firewall), live monitoring, 7-day trends, and per-device DNS logs
+
 ## Notes
 
 - Everything runs locally; the only outbound calls are the speed test, WHOIS,
