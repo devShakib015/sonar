@@ -33,6 +33,9 @@ final class SpeedTest: ObservableObject {
         await runDownload()
         await runUpload()
         phase = error == nil ? .done : .failed
+        if downMbps > 0 || upMbps > 0 {
+            SpeedHistory.append(SpeedResult(date: Date(), down: downMbps, up: upMbps, ping: latencyMs, jitter: jitterMs))
+        }
     }
 
     private func runLatency() async {

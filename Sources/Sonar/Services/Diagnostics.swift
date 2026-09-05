@@ -34,6 +34,9 @@ enum Diagnostics {
             let list = ports.map { String($0.port) }.joined(separator: ", ")
             print("\nGateway open ports: \(list.isEmpty ? "none" : list)")
             for p in ports { print("  \(p.port)  \(p.service)") }
+            let exp = await IGD.audit()
+            print("\nExposure: upnp=\(exp.upnpAvailable)  externalIP=\(exp.externalIP ?? "?")  mappings=\(exp.mappings.count)")
+            if let n = exp.note { print("  note: \(n)") }
             sem.signal()
         }
         sem.wait()

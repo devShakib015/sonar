@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum Panel: Hashable {
-    case overview, diagnostics, wifi, control, monitor, trends, dnsLogs
+    case overview, diagnostics, wifi, control, monitor, trends, dnsLogs, exposure, uptime, services, settings
     case device(String)
 }
 
@@ -9,24 +9,45 @@ struct ContentView: View {
     @EnvironmentObject var scanner: Scanner
     @State private var selection: Panel? = .overview
     @State private var showHistory = false
+    @State private var search = ""
 
-    private var newDevices: [Device] { scanner.devices.filter { $0.isNew && $0.isOnline } }
-    private var onlineDevices: [Device] { scanner.devices.filter { $0.isOnline && !$0.isNew } }
-    private var offlineDevices: [Device] { scanner.devices.filter { !$0.isOnline } }
+    private func matchesSearch(_ d: Device) -> Bool {
+        guard !search.isEmpty else { return true }
+        let q = search.lowercased()
+        return d.displayName.lowercased().contains(q) || d.ip.contains(q)
+            || (d.vendor ?? "").lowercased().contains(q) || d.mac.lowercased().contains(q)
+    }
+    private var newDevices: [Device] { scanner.devices.filter { $0.isNew && $0.isOnline && matchesSearch($0) } }
+    private var onlineDevices: [Device] { scanner.devices.filter { $0.isOnline && !$0.isNew && matchesSearch($0) } }
+    private var offlineDevices: [Device] { scanner.devices.filter { !$0.isOnline && matchesSearch($0) } }
 
     private func device(_ id: String) -> Device? { scanner.devices.first { $0.id == id } }
 
     var body: some View {
         NavigationSplitView {
             VStack(spacing: 0) {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).font(.caption)
+                    TextField("Search devices", text: $search).textFieldStyle(.plain)
+                    if !search.isEmpty {
+                        Button { search = "" } label: { Image(systemName: "xmark.circle.fill") }
+                            .buttonStyle(.plain).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 10).padding(.vertical, 6)
+                Divider()
                 List(selection: $selection) {
                     Section("Tools") {
                         Label("Overview", systemImage: "square.grid.2x2").tag(Panel.overview)
                         Label("Diagnostics", systemImage: "stethoscope").tag(Panel.diagnostics)
                         Label("Wi-Fi", systemImage: "wifi").tag(Panel.wifi)
+                        Label("Exposure", systemImage: "lock.shield").tag(Panel.exposure)
+                        Label("Services", systemImage: "antenna.radiowaves.left.and.right").tag(Panel.services)
                         Label("Control", systemImage: "slider.horizontal.3").tag(Panel.control)
                         Label("Monitor", systemImage: "chart.xyaxis.line").tag(Panel.monitor)
                         Label("Trends", systemImage: "chart.bar.xaxis").tag(Panel.trends)
+                        Label("Uptime", systemImage: "bolt.horizontal.circle").tag(Panel.uptime)
+                        Label("Settings", systemImage: "gearshape").tag(Panel.settings)
                         Label("DNS Logs", systemImage: "network.badge.shield.half.filled").tag(Panel.dnsLogs)
                     }
                     if !newDevices.isEmpty {
@@ -61,9 +82,13 @@ struct ContentView: View {
         switch selection {
         case .diagnostics: DiagnosticsView()
         case .wifi:        WiFiView()
+        case .exposure:    ExposureView()
+        case .services:    BonjourView()
+        case .settings:    SettingsView()
         case .control:     ControlView()
         case .monitor:     MonitorView()
         case .trends:      TrendsView()
+        case .uptime:      ReliabilityView()
         case .dnsLogs:     DNSLogsView()
         case .device(let id):
             if let d = device(id) { DeviceDetailView(device: d) }

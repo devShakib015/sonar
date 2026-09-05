@@ -27,6 +27,10 @@ monitoring, and reporting. No dependencies, no tracking, fully free.
 - Signal-strength meter + RSSI history chart
 - Nearby-AP scan with **least-congested channel** recommendation
 
+### 🛡️ Exposure audit
+- **UPnP port-mapping audit** — asks your router what ports it forwards to the internet (what the outside world can actually reach)
+- **Advanced port scanner** — scan any host/IP with Common, Top-1024, or custom port ranges
+
 ### 🎛️ Control
 - **Wake-on-LAN** magic packets
 - **Switch this Mac's DNS** (Cloudflare / Google / Quad9 / custom Pi-hole·NextDNS)
@@ -44,6 +48,18 @@ monitoring, and reporting. No dependencies, no tracking, fully free.
 - Filter by device, search domains, top-domains + blocked counts
 - This is the correct, consent-based answer to "who's browsing what": point your
   router's (or each device's) DNS at the resolver and read its log — no interception
+
+### ⚡ Uptime & reliability
+- **Outage monitor** — continuously checks gateway + internet, logs every drop with its duration, shows a rolling 24-hour uptime %
+- **Speed-test history** — every run charted over time
+
+### 📡 Bonjour / mDNS services
+- Browses the network to show what each device **advertises**: AirPlay, Cast, printers, HomeKit, SSH, screen & file sharing…
+- Device web-UI **title grab** for sharper identification
+
+### ⚙️ Settings & alerts
+- **Launch at login**, **menu-bar-only** background mode, **device search**
+- **Per-device alert rules** — get notified when a specific device joins or leaves
 
 ### 📊 Monitor & export
 - Live up/down throughput chart

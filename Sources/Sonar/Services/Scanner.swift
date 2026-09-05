@@ -176,6 +176,8 @@ final class Scanner: ObservableObject {
                     dev.customName = rec.customName
                     dev.trusted = rec.trusted
                     dev.notes = rec.notes
+                    dev.alertOnJoin = rec.alertOnJoin ?? false
+                    dev.alertOnLeave = rec.alertOnLeave ?? false
                 }
                 if wasNew && !dev.isThisDevice {
                     dev.isNew = true
@@ -196,7 +198,7 @@ final class Scanner: ObservableObject {
                 }
                 if !old.isOnline && !dev.isNew {
                     store.addEvent(ScanEvent(kind: .joined, mac: dev.mac, name: dev.displayName, ip: dev.ip))
-                    if notifyJoinLeave { Notifier.notify(title: "Device joined", body: "\(dev.displayName) — \(dev.ip)") }
+                    if notifyJoinLeave || dev.alertOnJoin { Notifier.notify(title: "Device joined", body: "\(dev.displayName) — \(dev.ip)") }
                 }
             }
             dev.lastSeen = Date()
@@ -209,7 +211,7 @@ final class Scanner: ObservableObject {
             if gone.isOnline {
                 gone.isOnline = false
                 store.addEvent(ScanEvent(kind: .left, mac: gone.mac, name: gone.displayName, ip: gone.ip))
-                if notifyJoinLeave { Notifier.notify(title: "Device left", body: "\(gone.displayName) — \(gone.ip)") }
+                if notifyJoinLeave || gone.alertOnLeave { Notifier.notify(title: "Device left", body: "\(gone.displayName) — \(gone.ip)") }
             }
             result.append(gone)
         }
@@ -249,6 +251,10 @@ final class Scanner: ObservableObject {
                                                        ports: ports.map { $0.port },
                                                        isGateway: devices[i].isGateway,
                                                        isThisDevice: devices[i].isThisDevice)
+        if let hp = [80, 8080, 8000, 8888].first(where: { p in ports.contains { $0.port == p } }),
+           let title = await HTTPTitle.fetch(ip: device.ip, port: hp) {
+            if let j = devices.firstIndex(where: { $0.id == device.id }) { devices[j].httpTitle = title }
+        }
     }
 
     // MARK: - Labels
@@ -262,6 +268,15 @@ final class Scanner: ObservableObject {
             devices[i].trusted = trusted
             devices[i].notes = notes
             devices[i].isNew = false
+        }
+    }
+
+    func setAlerts(for device: Device, onJoin: Bool, onLeave: Bool) {
+        guard !device.mac.isEmpty else { return }
+        store.setAlerts(mac: device.mac, onJoin: onJoin, onLeave: onLeave)
+        if let i = devices.firstIndex(where: { $0.id == device.id }) {
+            devices[i].alertOnJoin = onJoin
+            devices[i].alertOnLeave = onLeave
         }
     }
 

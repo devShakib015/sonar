@@ -54,6 +54,18 @@ final class DeviceStore {
         saveRecords()
     }
 
+    func setAlerts(mac: String, onJoin: Bool, onLeave: Bool) {
+        guard !mac.isEmpty else { return }
+        if var rec = records[mac] {
+            rec.alertOnJoin = onJoin; rec.alertOnLeave = onLeave; records[mac] = rec
+        } else {
+            records[mac] = StoredDevice(mac: mac, customName: nil, trusted: false, notes: "",
+                                        firstSeen: Date(), lastVendor: nil, lastHostname: nil,
+                                        alertOnJoin: onJoin, alertOnLeave: onLeave)
+        }
+        saveRecords()
+    }
+
     func addEvent(_ event: ScanEvent) {
         events.insert(event, at: 0)
         if events.count > 250 { events = Array(events.prefix(250)) }

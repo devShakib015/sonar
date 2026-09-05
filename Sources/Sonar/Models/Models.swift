@@ -88,11 +88,14 @@ struct Device: Identifiable, Hashable {
     var openPorts: [PortInfo] = []
     var portsScanned: Bool = false
     var ssdpServer: String? = nil
+    var httpTitle: String? = nil
 
     // User-managed metadata (persisted).
     var customName: String?
     var trusted: Bool = false
     var isNew: Bool = false
+    var alertOnJoin: Bool = false
+    var alertOnLeave: Bool = false
     var notes: String = ""
 
     // Stable identity: prefer MAC, fall back to IP for un-resolvable hosts.
@@ -163,6 +166,8 @@ struct StoredDevice: Codable {
     var firstSeen: Date
     var lastVendor: String?
     var lastHostname: String?
+    var alertOnJoin: Bool? = nil
+    var alertOnLeave: Bool? = nil
 }
 
 struct ThroughputSample: Identifiable, Hashable {

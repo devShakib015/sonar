@@ -73,7 +73,7 @@ enum PortScanner {
         func fire() -> Bool { lock.lock(); defer { lock.unlock() }; if done { return false }; done = true; return true }
     }
 
-    private static func isOpen(ip: String, port: UInt16, timeout: TimeInterval) async -> Bool {
+    static func isOpen(ip: String, port: UInt16, timeout: TimeInterval) async -> Bool {
         guard let nwPort = NWEndpoint.Port(rawValue: port) else { return false }
         return await withCheckedContinuation { cont in
             let conn = NWConnection(host: NWEndpoint.Host(ip), port: nwPort, using: .tcp)

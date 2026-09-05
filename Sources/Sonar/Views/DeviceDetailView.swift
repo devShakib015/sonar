@@ -7,6 +7,8 @@ struct DeviceDetailView: View {
     @State private var name = ""
     @State private var notes = ""
     @State private var trusted = false
+    @State private var alertJoin = false
+    @State private var alertLeave = false
 
     private var findings: [SecurityFinding] { Fingerprint.findings(ports: device.openPorts) }
     private var scanningPorts: Bool { scanner.scanningPortsFor == device.id }
@@ -19,6 +21,7 @@ struct DeviceDetailView: View {
                 identityCard
                 portsCard
                 if !findings.isEmpty { securityCard }
+                if !device.mac.isEmpty { alertsCard }
                 notesCard
             }
             .padding(20)
@@ -28,6 +31,8 @@ struct DeviceDetailView: View {
             name = device.customName ?? ""
             notes = device.notes
             trusted = device.trusted
+            alertJoin = device.alertOnJoin
+            alertLeave = device.alertOnLeave
         }
     }
 
@@ -89,6 +94,7 @@ struct DeviceDetailView: View {
                 InfoRow(label: "Hostname", value: device.hostname ?? "—", mono: device.hostname != nil)
                 InfoRow(label: "Type", value: device.deviceType.label)
                 if let s = device.ssdpServer { InfoRow(label: "UPnP", value: s) }
+                if let t = device.httpTitle { InfoRow(label: "Web page", value: t) }
                 InfoRow(label: "First seen", value: device.firstSeen.formatted(date: .abbreviated, time: .shortened))
                 InfoRow(label: "Last seen", value: device.lastSeen.formatted(date: .abbreviated, time: .shortened))
             }
@@ -160,6 +166,18 @@ struct DeviceDetailView: View {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private var alertsCard: some View {
+        Card {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionTitle(text: "Alerts for this device", icon: "bell")
+                Toggle("Notify when it joins the network", isOn: $alertJoin)
+                    .onChange(of: alertJoin) { _, _ in scanner.setAlerts(for: device, onJoin: alertJoin, onLeave: alertLeave) }
+                Toggle("Notify when it leaves the network", isOn: $alertLeave)
+                    .onChange(of: alertLeave) { _, _ in scanner.setAlerts(for: device, onJoin: alertJoin, onLeave: alertLeave) }
             }
         }
     }
