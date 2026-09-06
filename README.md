@@ -6,6 +6,56 @@ A native SwiftUI app that gives you complete visibility and control of your own
 network — discovery, deep diagnostics, Wi-Fi analysis, control actions, live
 monitoring, and reporting. No dependencies, no tracking, fully free.
 
+## 📸 A look inside
+
+<div align="center">
+  <img src="docs/screenshots/radar.jpg" width="820"
+       alt="Sonar's radar view: a glowing green sweep rotating around this Mac at the centre, with eleven discovered devices plotted as labelled blips at distances reflecting their latency, on a phosphor-terminal grid.">
+  <br>
+  <em><b>Radar</b> — every device on the network as a live blip; click one to inspect it</em>
+</div>
+
+<br>
+
+<table>
+<tr>
+<td width="50%">
+  <img src="docs/screenshots/overview.jpg"
+       alt="Overview showing a Network Health score of 80 out of 100 in a green ring, no insecure services exposed, and a security anomalies list flagging new devices first seen at 04:38, outside typical hours.">
+  <br><em><b>Overview</b> — a 0–100 health score and the anomalies behind it</em>
+</td>
+<td width="50%">
+  <img src="docs/screenshots/diagnostics.jpg"
+       alt="Diagnostics panels for internet speed test, ping monitor, traceroute, DNS lookup returning A records for google.com, and WHOIS output. The public IP and ISP panel is deliberately blurred.">
+  <br><em><b>Diagnostics</b> — speed, ping, traceroute, DNS and WHOIS in one place</em>
+</td>
+</tr>
+<tr>
+<td width="50%">
+  <img src="docs/screenshots/wifi.jpg"
+       alt="Wi-Fi analyzer showing minus 71 dBm signal, WPA2 Personal, channel 149 on 5 GHz at 80 MHz width, 260 Mbps TX rate, an RSSI history chart, and a nearby-networks scan recommending the least congested channel. Network names are deliberately blurred.">
+  <br><em><b>Wi-Fi</b> — link stats, RSSI history, least-congested channel</em>
+</td>
+<td width="50%">
+  <img src="docs/screenshots/trends.jpg"
+       alt="Trends view with 55 samples, 12 peak devices, 786 KB per second peak throughput and 6 ms average ping, above charts of devices online, throughput and gateway versus internet latency.">
+  <br><em><b>Trends</b> — seven days on disk, so "it feels slow" becomes a date</em>
+</td>
+</tr>
+<tr>
+<td width="50%">
+  <img src="docs/screenshots/monitor.jpg"
+       alt="Monitor view with a live up and down throughput chart, a top-talkers list showing bandwidth per process, and buttons to export the network map as CSV, JSON or a PDF report.">
+  <br><em><b>Monitor</b> — live throughput, per-process talkers, CSV/JSON/PDF export</em>
+</td>
+<td width="50%">
+  <img src="docs/screenshots/control.jpg"
+       alt="Control view offering Wake-on-LAN, DNS switching for this Mac between Cloudflare, Google, Quad9 or a custom resolver, a macOS firewall toggle, and per-device quick launch for router admin, web UI and SSH.">
+  <br><em><b>Control</b> — Wake-on-LAN, DNS switching, firewall, quick launch</em>
+</td>
+</tr>
+</table>
+
 ## Features
 
 ### 🛰️ Radar & dashboard
